@@ -12,6 +12,10 @@ public class RpgMapGeneratorController {
     private int[][] matR, matG, matB, zoneR, zoneG, zoneB;
 
     //Factors that will determine how the image will be altered
+    //chunkDensity means how the image will be split into before the  zones start to being put togheter
+    //deviation means how often the analysed pixel will differ from its surroundings
+    //TODO Still needs to find a better way to compare the current pixel to its surroundings
+    //canvasMutation means the current pixel chance to change from its original value
     double chunkDensity, deviation, canvasMutation;
 
     //Used pixel colors of the original image, each color will represent a zone of the map with its own objects and characteristics
@@ -99,7 +103,7 @@ public class RpgMapGeneratorController {
         ArrayList<Map.Entry<String, Integer>> muCanvas;
         muCanvas = orderColorUsage(canvasColors);
 
-        //TODO divide into smaller chunks/sectors so it looks less artificial, the more the better, it may also be usefull to do it using multi threads
+        //TODO divide into smaller chunks/sectors so it looks less artificial, the more the better, it may also be useful to do it using multi threads
         for (int n = 0; n < 1; n++) {
 
             //TODO erase after adjusting the smaller chunk division
@@ -128,12 +132,11 @@ public class RpgMapGeneratorController {
                 }
             }
         }
-
     }
 
     private ArrayList<Map.Entry<String,Integer>> orderColorUsage (HashMap<String,Integer> usedColors){
         List<Map.Entry<String,Integer>> list = new ArrayList<>(usedColors.entrySet());
-        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+        list.sort(new Comparator<Map.Entry<String, Integer>>() {
             @Override
             public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
                 return o2.getValue().compareTo(o1.getValue());
@@ -283,14 +286,28 @@ public class RpgMapGeneratorController {
         setMatG(rgbMat.elementAt(1));
         setMatB(rgbMat.elementAt(2));
 
-        setZoneR(getMatR());
-        setZoneG(getMatG());
-        setZoneB(getMatB());
-
         int chunks =(int) Math.pow(4,(this.getChunkDensity() -1));
+        matToZone();
 
         //If both changeCanvas and deviation are too high the results are not too good, SPECIALLY THE changeCanvas VALUE
         //deviation 0.8 and changeCanvas 0.2 wields good results
-        this.fillUpCanvas(zoneR, zoneG, zoneB, getDeviation(), chunks, getCanvasMutation());
+        fillUpCanvas(zoneR, zoneG, zoneB, getDeviation(), chunks, getCanvasMutation());
+    }
+
+    private void matToZone(){
+        int height = matR.length;
+        int width = matR[0].length;
+
+        zoneR = new int[height][width];
+        zoneG = new int[height][width];
+        zoneB = new int[height][width];
+
+        for (int i = 0; i < matR.length; i++) {
+            for (int j = 0; j < matR[0].length; j++) {
+                zoneR[i][j] = matR[i][j];
+                zoneG[i][j] = matG[i][j];
+                zoneB[i][j] = matB[i][j];
+            }
+        }
     }
 }

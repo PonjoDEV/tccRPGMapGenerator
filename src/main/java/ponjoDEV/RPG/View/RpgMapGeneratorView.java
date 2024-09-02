@@ -14,9 +14,7 @@ import java.awt.image.WritableRaster;
 public class RpgMapGeneratorView extends JFrame {
     private final JDesktopPane theDesktop = new JDesktopPane();
     private final JFileChooser fileChooser = new JFileChooser();
-    private JSlider deviationSlider, canvasMutationSlider, chunkDensitySlider;
     private String path;
-
     private RpgMapGeneratorController rpgController = new RpgMapGeneratorController();
 
 
@@ -37,10 +35,8 @@ public class RpgMapGeneratorView extends JFrame {
         }
 
         public Dimension getPreferredSize(){
-            return new Dimension(imageIcon.getIconWidth(),
-                    imageIcon.getIconHeight());
+            return new Dimension(imageIcon.getIconWidth(),imageIcon.getIconHeight());
         }
-
     }
 
     public RpgMapGeneratorView() {
@@ -53,7 +49,6 @@ public class RpgMapGeneratorView extends JFrame {
         setupButtons();
 
         add(theDesktop, BorderLayout.CENTER);
-
 
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -97,6 +92,16 @@ public class RpgMapGeneratorView extends JFrame {
                     }
                 }
         );
+
+        //Option to register used colors not actually used right now as a user input, maybe replace or erase later
+        regColors.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+
+                    }
+                }
+        );
     }
 
     private void setupSliders() {
@@ -119,7 +124,7 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(deviationSlider);
 
 
-        // Slider 2: ChangeCanvas
+        // Slider 2: Canvas Mutation
         JLabel canvasMutationLabel = new JLabel("Mutation Chance");
         JSlider canvasMutationSlider = new JSlider(0, 100);
         canvasMutationSlider.setValue(30);  // Valor inicial
@@ -134,8 +139,6 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(canvasMutationLabel);
         sliderPanel.add(canvasMutationSlider);
 
-
-
         // Slider 3: ChunkDensity
         JLabel chunkDensityLabel = new JLabel("Chunk Density");
         JSlider chunkDensitySlider = new JSlider(1, 10);
@@ -144,7 +147,7 @@ public class RpgMapGeneratorView extends JFrame {
             @Override
             public void stateChanged(ChangeEvent e) {
                 //TODO Value as 1 will mean there will be no division, so the screen is just 1 chunk generated,
-                // if more there could also be some multithread aplied to it
+                // if more it need to scale in a base of 4 there could also be some multithread aplied to it
                 rpgController.setChunkDensity(Math.round(chunkDensitySlider.getValue()));
                 System.out.println("Chunk Density: " + Math.round(chunkDensitySlider.getValue()));
             }
@@ -172,17 +175,6 @@ public class RpgMapGeneratorView extends JFrame {
         buttonPanel.add(generateZonesButton);
 
         //Creating and adding second button to the button panel
-        JButton createMapButton = new JButton("Create Map ");
-        createMapButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //TODO using the zoneR zoneG zoneB its supposed to pick the assets from a folder and put them into the image, still not sure how to do though
-            }
-        });
-        buttonPanel.add(createMapButton);
-
-
-        //Creating and adding third button to the button panel
         JButton saveCurrentZonesButton = new JButton("Save Zone Map");
         saveCurrentZonesButton.addActionListener(new ActionListener() {
             @Override
@@ -192,6 +184,15 @@ public class RpgMapGeneratorView extends JFrame {
         });
         buttonPanel.add(saveCurrentZonesButton);
 
+        //Creating and adding third button to the button panel
+        JButton createMapButton = new JButton("Create Map ");
+        createMapButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //TODO using the zoneR zoneG zoneB its supposed to pick the assets from a folder and put them into the image, still not sure how to do though
+            }
+        });
+        buttonPanel.add(createMapButton);
         add(buttonPanel, BorderLayout.EAST);
     }
 
@@ -220,6 +221,5 @@ public class RpgMapGeneratorView extends JFrame {
         frame.pack();
         theDesktop.add(frame);
         frame.setVisible(true);
-
     }
 }
