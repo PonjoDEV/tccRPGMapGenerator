@@ -139,22 +139,6 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(canvasMutationLabel);
         sliderPanel.add(canvasMutationSlider);
 
-        // Slider 3: ChunkDensity
-        JLabel chunkDensityLabel = new JLabel("Chunk Density");
-        JSlider chunkDensitySlider = new JSlider(1, 10);
-        chunkDensitySlider.setValue(5);  // Valor inicial
-        chunkDensitySlider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                //TODO Value as 1 will mean there will be no division, so the screen is just 1 chunk generated,
-                // if more it need to scale in a base of 4 there could also be some multithread aplied to it
-                rpgController.setChunkDensity(Math.round(chunkDensitySlider.getValue()));
-                System.out.println("Chunk Density: " + Math.round(chunkDensitySlider.getValue()));
-            }
-        });
-        sliderPanel.add(chunkDensityLabel);
-        sliderPanel.add(chunkDensitySlider);
-
         add(sliderPanel, BorderLayout.SOUTH);
     }
 

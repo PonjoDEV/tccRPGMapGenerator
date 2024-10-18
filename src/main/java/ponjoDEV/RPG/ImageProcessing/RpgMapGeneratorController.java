@@ -11,12 +11,10 @@ public class RpgMapGeneratorController {
     //Mat being the original image, and zones being the new generated image with the zones of each kind of terrain/assets
     private int[][] matR, matG, matB, zoneR, zoneG, zoneB;
 
-    //Factors that will determine how the image will be altered
-    //chunkDensity means how the image will be split into before the  zones start to being put togheter
     //deviation means how often the analysed pixel will differ from its surroundings
     //TODO Still needs to find a better way to compare the current pixel to its surroundings
     //canvasMutation means the current pixel chance to change from its original value
-    double chunkDensity, deviation, canvasMutation;
+    double deviation, canvasMutation;
 
     //Used pixel colors of the original image, each color will represent a zone of the map with its own objects and characteristics
     private HashMap<String,Integer> pixelColors = new HashMap<>();
@@ -70,14 +68,6 @@ public class RpgMapGeneratorController {
         this.zoneB = zoneB;
     }
 
-    public double getChunkDensity() {
-        return chunkDensity;
-    }
-
-    public void setChunkDensity(double chunkDensity) {
-        this.chunkDensity = chunkDensity;
-    }
-
     public double getDeviation() {
         return deviation;
     }
@@ -94,7 +84,7 @@ public class RpgMapGeneratorController {
         this.canvasMutation = canvasMutation;
     }
 
-    public void fillUpCanvas(int [][] red, int [][] green, int [][] blue, double deviation, int chunks, double changeCanvas) {
+    public void fillUpZones(int [][] red, int [][] green, int [][] blue, double deviation, double changeCanvas) {
         //Saving the most used colors from the canvas in case all around the analysed pixel are blank spots
         HashMap<String, Integer> canvasColors = new HashMap<>();
         registerColors(0, red.length, 0, red[0].length, red, blue, green, canvasColors);
@@ -103,24 +93,12 @@ public class RpgMapGeneratorController {
         ArrayList<Map.Entry<String, Integer>> muCanvas;
         muCanvas = orderColorUsage(canvasColors);
 
-        //TODO divide into smaller chunks/sectors so it looks less artificial, the more the better, it may also be useful to do it using multi threads
-        for (int n = 0; n < 1; n++) {
-
-            //TODO erase after adjusting the smaller chunk division
             for (int i = 1; i < red.length - 1; i++) {
                 for (int j = 1; j < red[0].length - 1; j++) {
 
                     int redPx = red[i][j];
                     int greenPx = green[i][j];
                     int bluePx = blue[i][j];
-
-
-                    //TODO need to initialize, maybe as a bigger size screen
-                        /*
-                        zoneR[i][j] = red[i][j];
-                        zoneG[i][j] = green[i][j];
-                        zoneB[i][j] = blue[i][j];
-                        */
 
                     //If it's a blank space, it should check its surroundings and adjusting according to it, plus a variation chance
                     if (redPx == 255 && greenPx == 255 && bluePx == 255) {
@@ -131,7 +109,6 @@ public class RpgMapGeneratorController {
                     }
                 }
             }
-        }
     }
 
     private ArrayList<Map.Entry<String,Integer>> orderColorUsage (HashMap<String,Integer> usedColors){
@@ -286,15 +263,14 @@ public class RpgMapGeneratorController {
         setMatG(rgbMat.elementAt(1));
         setMatB(rgbMat.elementAt(2));
 
-        int chunks =(int) Math.pow(4,(this.getChunkDensity() -1));
-        matToZone();
+        copyMatToZone();
 
         //If both changeCanvas and deviation are too high the results are not too good, SPECIALLY THE changeCanvas VALUE
         //deviation 0.8 and changeCanvas 0.2 wields good results
-        fillUpCanvas(zoneR, zoneG, zoneB, getDeviation(), chunks, getCanvasMutation());
+        fillUpZones(zoneR, zoneG, zoneB, getDeviation(), getCanvasMutation());
     }
 
-    private void matToZone(){
+    private void copyMatToZone(){
         int height = matR.length;
         int width = matR[0].length;
 
