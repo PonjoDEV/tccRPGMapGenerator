@@ -10,12 +10,19 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.util.*;
 
 public class RpgMapGeneratorView extends JFrame {
     private final JDesktopPane theDesktop = new JDesktopPane();
     private final JFileChooser fileChooser = new JFileChooser();
     private String path;
-    private RpgMapGeneratorController rpgController = new RpgMapGeneratorController();
+    private RpgMapGeneratorController rpgController = new RpgMapGeneratorController(this);
+
+    // Array of possible kinds of terrain
+    private String[] terrainTypes = {"Grass", "Water", "Mountain", "Desert", "Construction"};
+
+    // Panel to hold dinamic drop-downs
+    private JPanel colorMenuPanel = new JPanel();
 
 
     class MyJPanel extends JPanel{
@@ -44,10 +51,14 @@ public class RpgMapGeneratorView extends JFrame {
 
         setLayout(new BorderLayout());
 
+        // Initializing controller with this view instance
+        rpgController = new RpgMapGeneratorController(this);
+
         setupMenu();
         setupSliders();
         setupButtons();
 
+        add(colorMenuPanel, BorderLayout.NORTH);
         add(theDesktop, BorderLayout.CENTER);
 
         setSize(1200, 800);
@@ -104,40 +115,55 @@ public class RpgMapGeneratorView extends JFrame {
         );
     }
 
+    // Creating dinamic drop down menus
+    public void createColorDropdowns(HashMap<String, Integer> colorMap) {
+        colorMenuPanel.removeAll();  // Limpa os menus antigos
+
+        // To each registered color of the zones, creates a new JComboBox
+        for (String colorKey : colorMap.keySet()) {
+            JLabel label = new JLabel("Color: " + colorKey);
+            JComboBox<String> terrainMenu = new JComboBox<>(terrainTypes);  // Drop-down com tipos de terreno
+            colorMenuPanel.add(label);
+            colorMenuPanel.add(terrainMenu);
+        }
+
+        // Refreshing interface
+        colorMenuPanel.revalidate();
+        colorMenuPanel.repaint();
+    }
+
     private void setupSliders() {
         JPanel sliderPanel = new JPanel();
         sliderPanel.setLayout(new GridLayout(3, 2));
 
         // Slider 1: Deviation
-        JLabel deviationLabel = new JLabel("Deviation");
-        JSlider deviationSlider = new JSlider(0, 100);
-        deviationSlider.setValue(15);  // Valor inicial
-        deviationSlider.addChangeListener(new ChangeListener() {
+        JLabel surroundWeight = new JLabel("Surrounding weight");
+        JSlider surroundWeightSlider = new JSlider(45, 100);
+        surroundWeightSlider.setValue(60);
+        surroundWeightSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                //Deviation of 0.15 being optimal for now
-                rpgController.setDeviation(deviationSlider.getValue()/100.0);
-                System.out.println("Deviation: " + deviationSlider.getValue() / 100.0);
+                rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/100.0);
+                System.out.println("Surrounding weight: " + surroundWeightSlider.getValue()/100.0);
             }
         });
-        sliderPanel.add(deviationLabel);
-        sliderPanel.add(deviationSlider);
+        sliderPanel.add(surroundWeight);
+        sliderPanel.add(surroundWeightSlider);
 
 
         // Slider 2: Canvas Mutation
-        JLabel canvasMutationLabel = new JLabel("Mutation Chance");
-        JSlider canvasMutationSlider = new JSlider(0, 100);
-        canvasMutationSlider.setValue(30);  // Valor inicial
-        canvasMutationSlider.addChangeListener(new ChangeListener() {
+        JLabel mutationChanceLabel = new JLabel("Mutation Chance");
+        JSlider mutationChanceSlider = new JSlider(0, 100);
+        mutationChanceSlider.setValue(30);
+        mutationChanceSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                //changesRation of 0.3 being optimal for now
-                rpgController.setCanvasMutation(canvasMutationSlider.getValue()/100.0);
-                System.out.println("Mutation Chance: " + canvasMutationSlider.getValue() / 100.0);
+                rpgController.setMutationChance(mutationChanceSlider.getValue()/100.0);
+                System.out.println("Mutation Chance: " + mutationChanceSlider.getValue() / 100.0);
             }
         });
-        sliderPanel.add(canvasMutationLabel);
-        sliderPanel.add(canvasMutationSlider);
+        sliderPanel.add(mutationChanceLabel);
+        sliderPanel.add(mutationChanceSlider);
 
         add(sliderPanel, BorderLayout.SOUTH);
     }

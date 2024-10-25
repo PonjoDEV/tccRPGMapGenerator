@@ -1,5 +1,6 @@
 package ponjoDEV.RPG.ImageProcessing;
 
+import ponjoDEV.RPG.View.RpgMapGeneratorView;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -7,6 +8,10 @@ import java.io.IOException;
 import java.util.*;
 
 public class RpgMapGeneratorController {
+    private RpgMapGeneratorView view;
+    public RpgMapGeneratorController(RpgMapGeneratorView view){
+        this.view = view;
+    }
 
     //Mat being the original image, and zones being the new generated image with the zones of each kind of terrain/assets
     private int[][] matR, matG, matB, zoneR, zoneG, zoneB;
@@ -14,11 +19,7 @@ public class RpgMapGeneratorController {
     //deviation means how often the analysed pixel will differ from its surroundings
     //TODO Still needs to find a better way to compare the current pixel to its surroundings
     //canvasMutation means the current pixel chance to change from its original value
-    double deviation, canvasMutation;
-
-    //Used pixel colors of the original image, each color will represent a zone of the map with its own objects and characteristics
-    private HashMap<String,Integer> pixelColors = new HashMap<>();
-
+    double surroundingWeight, mutationChance;
 
     public int[][] getMatR() {
         return matR;
@@ -68,47 +69,60 @@ public class RpgMapGeneratorController {
         this.zoneB = zoneB;
     }
 
-    public double getDeviation() {
-        return deviation;
+    public double getSurroundingWeight() {
+        return surroundingWeight;
     }
 
-    public void setDeviation(double deviation) {
-        this.deviation = deviation;
+    public void setSurroundingWeight(double surroundingWeight) {
+        this.surroundingWeight = surroundingWeight;
     }
 
-    public double getCanvasMutation() {
-        return canvasMutation;
+    public double getMutationChance() {
+        return mutationChance;
     }
 
-    public void setCanvasMutation(double canvasMutation) {
-        this.canvasMutation = canvasMutation;
+    public void setMutationChance(double mutationChance) {
+        this.mutationChance = mutationChance;
     }
 
-    public void fillUpZones(int [][] red, int [][] green, int [][] blue, double deviation, double changeCanvas) {
+    public void fillUpZones(int [][] red, int [][] green, int [][] blue, double surroundingWeight, double mutationChance) {
         //Saving the most used colors from the canvas in case all around the analysed pixel are blank spots
         HashMap<String, Integer> canvasColors = new HashMap<>();
         registerColors(0, red.length, 0, red[0].length, red, blue, green, canvasColors);
 
+        // Call the view to generate the drop down menus
+        view.createColorDropdowns(canvasColors);
+
         //Ordering the most used color on the whole canvas
-        ArrayList<Map.Entry<String, Integer>> muCanvas;
-        muCanvas = orderColorUsage(canvasColors);
+        ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors;
+        mostUsedGlobalColors = orderColorUsage(canvasColors);
 
-            for (int i = 1; i < red.length - 1; i++) {
-                for (int j = 1; j < red[0].length - 1; j++) {
 
-                    int redPx = red[i][j];
-                    int greenPx = green[i][j];
-                    int bluePx = blue[i][j];
+        // Vector wich will be used to random select pixels on the scrren to be filled
+        int pixelCount = (red.length*red[0].length);
+        int [] randomPick = new int[pixelCount];
+        for (int i = 0; i < pixelCount; i++) {
+            randomPick[i]=i;
+        }
 
-                    //If it's a blank space, it should check its surroundings and adjusting according to it, plus a variation chance
-                    if (redPx == 255 && greenPx == 255 && bluePx == 255) {
-                        //If blank it MUST change its color, so changeCanvas chance set to 1
-                        changePixel(red, green, blue, i, j, muCanvas, deviation, 1);
-                    } else {
-                        changePixel(red, green, blue, i, j, muCanvas, deviation, changeCanvas);
-                    }
-                }
+        shuffleVector(randomPick);
+
+        for (int i = 0; i < pixelCount - 1; i++) {
+            int x = randomPick[i]%red.length;
+            int y = randomPick[i]/red.length;
+
+            int redPx = red[x][y];
+            int greenPx = green[x][y];
+            int bluePx = blue[x][y];
+
+            //If it's a blank space, it should check its surroundings and adjusting according to it, plus a variation chance
+            if (redPx == 255 && greenPx == 255 && bluePx == 255) {
+                //If blank it MUST change its color, so mutationChance chance set to 1
+                changePixel(red, green, blue, x, y, mostUsedGlobalColors, surroundingWeight, 1.0);
+            } else {
+                changePixel(red, green, blue, x, y, mostUsedGlobalColors, surroundingWeight, mutationChance);
             }
+        }
     }
 
     private ArrayList<Map.Entry<String,Integer>> orderColorUsage (HashMap<String,Integer> usedColors){
@@ -130,6 +144,9 @@ public class RpgMapGeneratorController {
         //If the RGB Value hasn't been registered yet, we add it to the pixelColors Hash with a new ID corresponding to the times of occurrences
         for (int i = begY; i < endY; i++) {
             for (int j = begX; j < endX; j++) {
+                if (i < 0 || j < 0 || i >= red.length || j >= red[0].length) {
+                    continue;
+                }
                 if (red[i][j] != 255 || green[i][j] != 255 || blue[i][j] != 255) {
                     rgbString = String.valueOf(red[i][j]) + "," + String.valueOf(green[i][j]) + "," + String.valueOf(blue[i][j]);
                     if (!pixelColors.containsKey(rgbString)) {
@@ -142,54 +159,48 @@ public class RpgMapGeneratorController {
                 }
             }
         }
-        //System.out.println(pixelColors);
     }
 
-    private void changePixel(int[][] red, int[][] green, int[][] blue, int i, int j, ArrayList<Map.Entry<String, Integer>> muCanvas, double deviation, double changeCanvas) {
-        if (Math.random()<=changeCanvas) {
-            //Saving the used colors from around the pixel as a hashMap
-            HashMap<String, Integer> aroundPixel = new HashMap<>();
-            registerColors(i - 1, i + 2, j - 1, j + 2, red, blue, green, aroundPixel);
+    private void changePixel(int[][] red, int[][] green, int[][] blue, int i, int j, ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors, double surrondWeight, double mutationChance) {
+        if ((Math.random() > mutationChance)) {
+            return;
+        }
+        //Saving the used colors from around the pixel as a hashMap
+        HashMap<String, Integer> aroundPixel = new HashMap<>();
+        registerColors(i - 1, i + 2, j - 1, j + 2, red, blue, green, aroundPixel);
 
-            //DONE order the aroundPixel HashMap by color usage
-            ArrayList<Map.Entry<String, Integer>> mostUsedColor;
-            mostUsedColor = orderColorUsage(aroundPixel);
+        //Ordering the aroundPixel HashMap by color usage
+        ArrayList<Map.Entry<String, Integer>> mostUsedColor;
+        mostUsedColor = orderColorUsage(aroundPixel);
 
-            int[] rgb;
-            int pickedColor = 0;
-            //DONE select color by usage and deviation
+        int[] rgb;
+        int pickedColor = 0;
+        //Selecting color by usage and surrondWeight
 
-            //DONE if all spaces around are blank it should use the most present value on the screen
-            if (mostUsedColor.isEmpty()) {
-                pickedColor = deviationColor(deviation, muCanvas.size());
-                //System.out.println("Rounded by just blank spaces");
-                rgb = stringToRGB(muCanvas.get(pickedColor).getKey());
-                //System.out.println(Arrays.toString(rgb));
+        //If all spaces around the analysed are blank it should use the most present value on the screen
+        if (mostUsedColor.isEmpty()) {
+            pickedColor = colorSelection(surrondWeight, mostUsedGlobalColors.size());
+            rgb = stringToRGB(mostUsedGlobalColors.get(pickedColor).getKey());
 
-                //paint the blank space as the selected color
-                red[i][j] = rgb[0];
-                green[i][j] = rgb[1];
-                blue[i][j] = rgb[2];
+            red[i][j] = rgb[0];
+            green[i][j] = rgb[1];
+            blue[i][j] = rgb[2];
 
-            } else {
-                pickedColor = deviationColor(deviation, mostUsedColor.size());
-                //System.out.println(Arrays.toString(rgb));
-                rgb = stringToRGB(mostUsedColor.get(pickedColor).getKey());
-                //System.out.println(Arrays.toString(rgb));
+        } else {
+            pickedColor = colorSelection(surrondWeight, mostUsedColor.size());
+            rgb = stringToRGB(mostUsedColor.get(pickedColor).getKey());
 
-                //paint the blank space as the selected color
-                red[i][j] = rgb[0];
-                green[i][j] = rgb[1];
-                blue[i][j] = rgb[2];
-            }
+            red[i][j] = rgb[0];
+            green[i][j] = rgb[1];
+            blue[i][j] = rgb[2];
         }
     }
 
     //Will iterate through a number of colors then pick one
-    private int deviationColor(double deviation, int nColors) {
+    private int colorSelection(double surroundWeight, int nColors) {
         int pick=0;
         for (int i = 1; i < nColors; i++) {
-            if (Math.random() <= deviation) {
+            if (Math.random() > surroundWeight) {
                 pick = i;
             } else {
                 break;
@@ -267,7 +278,7 @@ public class RpgMapGeneratorController {
 
         //If both changeCanvas and deviation are too high the results are not too good, SPECIALLY THE changeCanvas VALUE
         //deviation 0.8 and changeCanvas 0.2 wields good results
-        fillUpZones(zoneR, zoneG, zoneB, getDeviation(), getCanvasMutation());
+        fillUpZones(zoneR, zoneG, zoneB, getSurroundingWeight(), getMutationChance());
     }
 
     private void copyMatToZone(){
@@ -284,6 +295,19 @@ public class RpgMapGeneratorController {
                 zoneG[i][j] = matG[i][j];
                 zoneB[i][j] = matB[i][j];
             }
+        }
+    }
+
+    private void shuffleVector(int[] ar)
+    {
+        Random rnd = new Random();
+        for (int i = ar.length - 1; i > 0; i--)
+        {
+            int index = rnd.nextInt(i + 1);
+            // Simple swap
+            int a = ar[index];
+            ar[index] = ar[i];
+            ar[i] = a;
         }
     }
 }
