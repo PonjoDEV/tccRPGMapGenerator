@@ -19,7 +19,7 @@ public class RpgMapGeneratorController {
     //deviation means how often the analysed pixel will differ from its surroundings
     //TODO Still needs to find a better way to compare the current pixel to its surroundings
     //canvasMutation means the current pixel chance to change from its original value
-    double surroundingWeight, mutationChance;
+    double surroundingWeight, mutationChance, perlinNoise;
 
     public int[][] getMatR() {
         return matR;
@@ -77,6 +77,14 @@ public class RpgMapGeneratorController {
         this.surroundingWeight = surroundingWeight;
     }
 
+    public double getSPerlinNoise() {
+        return perlinNoise;
+    }
+
+    public void setPerlinNoise(double perlinNoise) {
+        this.perlinNoise = perlinNoise;
+    }
+
     public double getMutationChance() {
         return mutationChance;
     }
@@ -90,26 +98,47 @@ public class RpgMapGeneratorController {
         HashMap<String, Integer> canvasColors = new HashMap<>();
         registerColors(0, red.length, 0, red[0].length, red, blue, green, canvasColors);
 
-        // Call the view to generate the drop down menus
+        /*
+        // Call the view to generate the drop-down menus
         view.createColorDropdowns(canvasColors);
+        //*/
 
         //Ordering the most used color on the whole canvas
         ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors;
         mostUsedGlobalColors = orderColorUsage(canvasColors);
 
+        /* NORMAL PIXEL SELECTION ORDER (LOOKS UNNATURAL)
+        for (int i = 0; i < red.length - 1; i++) {
+            for (int j = 0; j < red[0].length - 1; j++) {
+
+                int redPx = red[i][j];
+                int greenPx = green[i][j];
+                int bluePx = blue[i][j];
+
+                //If it's a blank space, it should check its surroundings and adjusting according to it, plus a variation chance
+                if (redPx == 255 && greenPx == 255 && bluePx == 255) {
+                    //If blank it MUST change its color, so mutationChance chance set to 1
+                    changePixel(red, green, blue, i, j, mostUsedGlobalColors, surroundingWeight, 1.0);
+                } else {
+                    changePixel(red, green, blue, i, j, mostUsedGlobalColors, surroundingWeight, mutationChance);
+                }
+            }
+        }
+        */
+
+        /* RANDOM PIXEL SELECTION ORDER*/
 
         // Vector wich will be used to random select pixels on the scrren to be filled
-        int pixelCount = (red.length*red[0].length);
-        int [] randomPick = new int[pixelCount];
+        int pixelCount = (red.length * red[0].length);
+        int[] randomPick = new int[pixelCount];
         for (int i = 0; i < pixelCount; i++) {
-            randomPick[i]=i;
+            randomPick[i] = i;
         }
-
         shuffleVector(randomPick);
 
         for (int i = 0; i < pixelCount - 1; i++) {
-            int x = randomPick[i]%red.length;
-            int y = randomPick[i]/red.length;
+            int x = randomPick[i] % red.length;
+            int y = randomPick[i] / red.length;
 
             int redPx = red[x][y];
             int greenPx = green[x][y];
@@ -123,6 +152,39 @@ public class RpgMapGeneratorController {
                 changePixel(red, green, blue, x, y, mostUsedGlobalColors, surroundingWeight, mutationChance);
             }
         }
+        //*/
+
+        /* PERLIN NOISE
+
+
+            // Instantiate the Perlin noise generator
+            PerlinNoise perlin = new PerlinNoise();
+
+            // Create a Perlin noise-based grid for pixel selection
+            double[][] noiseGrid = new double[red.length][red[0].length];
+            for (int i = 0; i < red.length; i++) {
+                for (int j = 0; j < red[0].length; j++) {
+                    noiseGrid[i][j] = perlin.noise(i * getSPerlinNoise(), j * getSPerlinNoise()); // Scale down for smoother gradients
+                }
+            }
+
+            // Process each pixel based on the noise values
+            for (int i = 0; i < red.length; i++) {
+                for (int j = 0; j < red[0].length; j++) {
+                    if (noiseGrid[i][j] > 0.5) { // Use a threshold to determine if it’s a zone to apply color
+                        int redPx = red[i][j];
+                        int greenPx = green[i][j];
+                        int bluePx = blue[i][j];
+
+                        double mutate = mutationChance;
+                        if (redPx == 255 && greenPx == 255 && bluePx == 255) {
+                            mutate = 1.0;
+                        }
+                        changePixel(red, green, blue, i, j, mostUsedGlobalColors, surroundingWeight, mutate);
+                    }
+                }
+            }
+        //*/
     }
 
     private ArrayList<Map.Entry<String,Integer>> orderColorUsage (HashMap<String,Integer> usedColors){
@@ -175,25 +237,20 @@ public class RpgMapGeneratorController {
 
         int[] rgb;
         int pickedColor = 0;
-        //Selecting color by usage and surrondWeight
+        //Selecting color by usage and surroundWeight
 
         //If all spaces around the analysed are blank it should use the most present value on the screen
         if (mostUsedColor.isEmpty()) {
             pickedColor = colorSelection(surrondWeight, mostUsedGlobalColors.size());
             rgb = stringToRGB(mostUsedGlobalColors.get(pickedColor).getKey());
-
-            red[i][j] = rgb[0];
-            green[i][j] = rgb[1];
-            blue[i][j] = rgb[2];
-
         } else {
             pickedColor = colorSelection(surrondWeight, mostUsedColor.size());
             rgb = stringToRGB(mostUsedColor.get(pickedColor).getKey());
-
-            red[i][j] = rgb[0];
-            green[i][j] = rgb[1];
-            blue[i][j] = rgb[2];
         }
+
+        red[i][j] = rgb[0];
+        green[i][j] = rgb[1];
+        blue[i][j] = rgb[2];
     }
 
     //Will iterate through a number of colors then pick one
@@ -219,36 +276,21 @@ public class RpgMapGeneratorController {
         return rgb;
     }
 
-    public Vector<int[][]> getMatrixRGB(String path){
-        BufferedImage img;
-        int[][] rmat = null;
-        int[][] gmat = null;
-        int[][] bmat = null;
-        try {
-            img = ImageIO.read(new File(path));
+    public Vector<int[][]> getMatrixRGB(BufferedImage img) {
+        int[][] rmat = new int[img.getHeight()][img.getWidth()];
+        int[][] gmat = new int[img.getHeight()][img.getWidth()];
+        int[][] bmat = new int[img.getHeight()][img.getWidth()];
 
-            int[][] pixelData = new int[img.getHeight() * img.getWidth()][3];
-            rmat = new int[img.getHeight()][img.getWidth()];
-            gmat = new int[img.getHeight()][img.getWidth()];
-            bmat = new int[img.getHeight()][img.getWidth()];
-
-            int counter = 0;
-            for(int i = 0; i < img.getHeight(); i++){
-                for(int j = 0; j < img.getWidth(); j++){
-                    rmat[i][j] = getPixelData(img, j, i)[0];
-                    gmat[i][j] = getPixelData(img, j, i)[1];
-                    bmat[i][j] = getPixelData(img, j, i)[2];
-
-                    /*for(int k = 0; k < rgb.length; k++){
-                        pixelData[counter][k] = rgb[k];
-                    }*/
-                    counter++;
-                }
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                int[] rgb = getPixelData(img, j, i);
+                rmat[i][j] = rgb[0];
+                gmat[i][j] = rgb[1];
+                bmat[i][j] = rgb[2];
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        Vector<int[][]> rgb = new Vector<int[][]>();
+
+        Vector<int[][]> rgb = new Vector<>();
         rgb.add(rmat);
         rgb.add(gmat);
         rgb.add(bmat);
@@ -267,18 +309,23 @@ public class RpgMapGeneratorController {
         return rgb;
     }
 
-    public void generateZones(String path) {
+    public void generateZones(BufferedImage canvas) {
+        // Check if the canvas image is available
+        if (canvas == null) {
+            System.out.println("Canvas image is null. Cannot generate zones.");
+        } else {
+            Vector<int[][]> rgbMat = getMatrixRGB(canvas);
+            setMatR(rgbMat.elementAt(0));
+            setMatG(rgbMat.elementAt(1));
+            setMatB(rgbMat.elementAt(2));
 
-        Vector<int[][]> rgbMat = getMatrixRGB(path);
-        setMatR(rgbMat.elementAt(0));
-        setMatG(rgbMat.elementAt(1));
-        setMatB(rgbMat.elementAt(2));
+            copyMatToZone();
 
-        copyMatToZone();
-
-        //If both changeCanvas and deviation are too high the results are not too good, SPECIALLY THE changeCanvas VALUE
-        //deviation 0.8 and changeCanvas 0.2 wields good results
-        fillUpZones(zoneR, zoneG, zoneB, getSurroundingWeight(), getMutationChance());
+            // If both changeCanvas and deviation are too high the results are not good,
+            // Especially with high changeCanvas values
+            // Recommended values: deviation 0.8 and changeCanvas 0.2
+            fillUpZones(zoneR, zoneG, zoneB, getSurroundingWeight(), getMutationChance());
+        }
     }
 
     private void copyMatToZone(){

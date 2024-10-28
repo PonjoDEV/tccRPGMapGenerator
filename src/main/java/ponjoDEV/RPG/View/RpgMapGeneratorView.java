@@ -6,8 +6,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.*;
@@ -19,11 +18,31 @@ public class RpgMapGeneratorView extends JFrame {
     private RpgMapGeneratorController rpgController = new RpgMapGeneratorController(this);
 
     // Array of possible kinds of terrain
-    private String[] terrainTypes = {"Grass", "Water", "Mountain", "Desert", "Construction"};
+    private final JTextField widthField = new JTextField("1200", 5);
+    private final JTextField heightField = new JTextField("800", 5);
+    private final JComboBox<String> colorMenu = new JComboBox<>(new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"});
+    private String selectedColor = "Grassland/Forest";
+
+    public BufferedImage getCanvasImage() {
+        return canvasImage;
+    }
+
+    public void setCanvasImage(BufferedImage canvasImage) {
+        this.canvasImage = canvasImage;
+    }
+
+    private BufferedImage canvasImage;
 
     // Panel to hold dinamic drop-downs
     private JPanel colorMenuPanel = new JPanel();
 
+    public JTextField getWidthField() {
+        return widthField;
+    }
+
+    public JTextField getHeightField() {
+        return heightField;
+    }
 
     class MyJPanel extends JPanel{
         private ImageIcon imageIcon;
@@ -47,7 +66,7 @@ public class RpgMapGeneratorView extends JFrame {
     }
 
     public RpgMapGeneratorView() {
-        super("RPGmapGenerator");
+        super("RPG Map Generator");
 
         setLayout(new BorderLayout());
 
@@ -57,13 +76,28 @@ public class RpgMapGeneratorView extends JFrame {
         setupMenu();
         setupSliders();
         setupButtons();
+        setupCanvas();
+        setupCanvasResize();
 
-        add(colorMenuPanel, BorderLayout.NORTH);
+
         add(theDesktop, BorderLayout.CENTER);
+
+        colorMenu.addActionListener(e -> selectedColor = (String) colorMenu.getSelectedItem());
 
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
+    }
+
+    private void setupCanvasResize() {
+        JPanel inputPanel = new JPanel();
+        inputPanel.add(new JLabel("Width:"));
+        inputPanel.add(widthField);
+        inputPanel.add(new JLabel("Height:"));
+        inputPanel.add(heightField);
+        inputPanel.add(new JLabel("Color:"));
+        inputPanel.add(colorMenu);
+        add(inputPanel, BorderLayout.NORTH);
     }
 
     private void setupMenu() {
@@ -115,21 +149,15 @@ public class RpgMapGeneratorView extends JFrame {
         );
     }
 
-    // Creating dinamic drop down menus
-    public void createColorDropdowns(HashMap<String, Integer> colorMap) {
-        colorMenuPanel.removeAll();  // Limpa os menus antigos
-
-        // To each registered color of the zones, creates a new JComboBox
-        for (String colorKey : colorMap.keySet()) {
-            JLabel label = new JLabel("Color: " + colorKey);
-            JComboBox<String> terrainMenu = new JComboBox<>(terrainTypes);  // Drop-down com tipos de terreno
-            colorMenuPanel.add(label);
-            colorMenuPanel.add(terrainMenu);
-        }
-
-        // Refreshing interface
-        colorMenuPanel.revalidate();
-        colorMenuPanel.repaint();
+    private void setupCanvas() {
+        JInternalFrame frame = new JInternalFrame("Drawing Canvas", true, true, true, true);
+        frame.setSize(800, 600);
+        Container container = frame.getContentPane();
+        DrawingPanel drawingPanel = new DrawingPanel();
+        container.add(drawingPanel, BorderLayout.CENTER);
+        frame.pack();
+        theDesktop.add(frame);
+        frame.setVisible(true);
     }
 
     private void setupSliders() {
@@ -138,7 +166,7 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 1: Deviation
         JLabel surroundWeight = new JLabel("Surrounding weight");
-        JSlider surroundWeightSlider = new JSlider(45, 100);
+        JSlider surroundWeightSlider = new JSlider(0, 100);
         surroundWeightSlider.setValue(60);
         surroundWeightSlider.addChangeListener(new ChangeListener() {
             @Override
@@ -159,32 +187,58 @@ public class RpgMapGeneratorView extends JFrame {
             @Override
             public void stateChanged(ChangeEvent e) {
                 rpgController.setMutationChance(mutationChanceSlider.getValue()/100.0);
-                System.out.println("Mutation Chance: " + mutationChanceSlider.getValue() / 100.0);
+                System.out.println("Mutation Chance: " + mutationChanceSlider.getValue()/100.0);
             }
         });
         sliderPanel.add(mutationChanceLabel);
         sliderPanel.add(mutationChanceSlider);
+
+        /*// Slider 3: Perlin noise
+        JLabel perlinNoise = new JLabel("Perlin Noise");
+        JSlider perlinNoiseSlider = new JSlider(0, 100);
+        perlinNoiseSlider.setValue(0);
+        perlinNoiseSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                rpgController.setPerlinNoise(perlinNoiseSlider.getValue()/1000.0);
+                System.out.println("Perlin Noise: " + perlinNoiseSlider.getValue()/1000.0);
+            }
+        });
+        sliderPanel.add(perlinNoise);
+        sliderPanel.add(perlinNoiseSlider);
+        //*/
 
         add(sliderPanel, BorderLayout.SOUTH);
     }
 
     private void setupButtons() {
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(3, 1));
+        buttonPanel.setLayout(new GridLayout(4, 1));
+
         //Creating and adding first button to the button panel
+        JButton createNewCanvas = new JButton("New Canvas");
+        createNewCanvas.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createNewCanvas();
+            }
+        });
+        buttonPanel.add(createNewCanvas);
+
+        //Creating and adding second button to the button panel
         JButton generateZonesButton = new JButton("Generate Zones");
         generateZonesButton.addActionListener(
                 new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        rpgController.generateZones(path);
+                        rpgController.generateZones(getCanvasImage());
                         generateImage(rpgController.getZoneR(),rpgController.getZoneG(),rpgController.getZoneB(),"Generated Zones");
                     }
                 }
         );
         buttonPanel.add(generateZonesButton);
 
-        //Creating and adding second button to the button panel
+        //Creating and adding third button to the button panel
         JButton saveCurrentZonesButton = new JButton("Save Zone Map");
         saveCurrentZonesButton.addActionListener(new ActionListener() {
             @Override
@@ -194,7 +248,7 @@ public class RpgMapGeneratorView extends JFrame {
         });
         buttonPanel.add(saveCurrentZonesButton);
 
-        //Creating and adding third button to the button panel
+        //Creating and adding fourth button to the button panel
         JButton createMapButton = new JButton("Create Map ");
         createMapButton.addActionListener(new ActionListener() {
             @Override
@@ -221,7 +275,7 @@ public class RpgMapGeneratorView extends JFrame {
         }
         raster.setPixels(0, 0, matrix1[0].length, matrix1.length, pixels);
 
-        //Abre Janela da imagem
+        //Opens Image Window
         JInternalFrame frame = new JInternalFrame(windowTitle, true,true, true, true);
         Container container = frame.getContentPane();
         MyJPanel panel = new MyJPanel();
@@ -232,4 +286,75 @@ public class RpgMapGeneratorView extends JFrame {
         theDesktop.add(frame);
         frame.setVisible(true);
     }
+
+
+    private void createNewCanvas() {
+        int width = Integer.parseInt(widthField.getText());
+        int height = Integer.parseInt(heightField.getText());
+        canvasImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = canvasImage.createGraphics();
+        g2d.setColor(Color.WHITE); // Fill background with white
+        g2d.fillRect(0, 0, width, height); //maybe pass the getWidth and getHeight instead of 0 0?
+        g2d.dispose();
+    }
+
+    private class DrawingPanel extends JPanel {
+        private int prevX, prevY;
+        private boolean drawing = false;
+
+        public DrawingPanel() {
+            setBackground(Color.WHITE);
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    prevX = e.getX();
+                    prevY = e.getY();
+                    drawing = true;
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    drawing = false;
+                }
+            });
+
+            addMouseMotionListener(new MouseMotionAdapter() {
+                @Override
+                public void mouseDragged(MouseEvent e) {
+                    if (drawing) {
+                        int x = e.getX();
+                        int y = e.getY();
+                        Graphics2D g2d = canvasImage.createGraphics();
+                        g2d.setColor(getSelectedColor());
+                        g2d.drawLine(prevX, prevY, x, y);
+                        g2d.dispose();
+                        repaint();
+                        prevX = x;
+                        prevY = y;
+                    }
+                }
+            });
+        }
+
+        private Color getSelectedColor() {
+            return switch (selectedColor) {
+                case "Grassland/Forest" -> Color.GREEN;
+                case "Water" -> Color.BLUE;
+                case "Mountains" -> Color.BLACK;
+                case "Desert/Sand" -> Color.YELLOW;
+                case "Construction" -> Color.RED;
+                case "Roads" -> Color.MAGENTA;
+                default -> Color.BLACK;
+            };
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (canvasImage != null) {
+                g.drawImage(canvasImage, 0, 0, null);
+            }
+        }
+    }
+
 }
