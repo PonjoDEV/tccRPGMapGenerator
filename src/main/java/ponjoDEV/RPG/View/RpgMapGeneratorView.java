@@ -22,6 +22,8 @@ public class RpgMapGeneratorView extends JFrame {
     private final JTextField heightField = new JTextField("800", 5);
     private final JComboBox<String> colorMenu = new JComboBox<>(new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"});
     private String selectedColor = "Grassland/Forest";
+    private int lineThickness = 1; // Default line thickness
+
 
     public BufferedImage getCanvasImage() {
         return canvasImage;
@@ -32,6 +34,8 @@ public class RpgMapGeneratorView extends JFrame {
     }
 
     private BufferedImage canvasImage;
+
+    private JInternalFrame lastGeneratedZonesFrame; // Track the last generated zones window
 
     // Panel to hold dinamic drop-downs
     private JPanel colorMenuPanel = new JPanel();
@@ -78,6 +82,7 @@ public class RpgMapGeneratorView extends JFrame {
         setupButtons();
         setupCanvas();
         setupCanvasResize();
+        createNewCanvas();
 
 
         add(theDesktop, BorderLayout.CENTER);
@@ -157,12 +162,17 @@ public class RpgMapGeneratorView extends JFrame {
         container.add(drawingPanel, BorderLayout.CENTER);
         frame.pack();
         theDesktop.add(frame);
+        try {
+            frame.setMaximum(true); // Automatically maximizes the frame
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         frame.setVisible(true);
     }
 
     private void setupSliders() {
         JPanel sliderPanel = new JPanel();
-        sliderPanel.setLayout(new GridLayout(3, 2));
+        sliderPanel.setLayout(new GridLayout(5, 2));
 
         // Slider 1: Deviation
         JLabel surroundWeight = new JLabel("Surrounding weight");
@@ -207,6 +217,49 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(perlinNoise);
         sliderPanel.add(perlinNoiseSlider);
         //*/
+
+        // Slider 4(?): Prop density
+        JLabel propDensityLabel = new JLabel("Prop Density");
+        JSlider propDensitySlider = new JSlider(0, 100);
+        propDensitySlider.setValue(30);
+        propDensitySlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                rpgController.setPropDensity(propDensitySlider.getValue()/100.0);
+                System.out.println("Prop Density: " + propDensitySlider.getValue()/100.0);
+            }
+        });
+        sliderPanel.add(propDensityLabel);
+        sliderPanel.add(propDensitySlider);
+
+        // Slider 5: Line Thickness
+        JLabel thicknessLabel = new JLabel("Line Thickness");
+        JSlider thicknessSlider = new JSlider(1, 100);
+        thicknessSlider.setValue(1); // Default thickness
+        thicknessSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                lineThickness = thicknessSlider.getValue();
+                System.out.println("Line Thickness: " + lineThickness);
+            }
+        });
+        sliderPanel.add(thicknessLabel);
+        sliderPanel.add(thicknessSlider);
+
+        // Slider 6: Zone Spread
+        JLabel zoneSpreadLabel = new JLabel("Zone Spread");
+        JSlider zoneSpreadSlider = new JSlider(1, 10);
+        zoneSpreadSlider.setValue(1); // Default Zone Spread
+        zoneSpreadSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                rpgController.setZoneSpread((int) zoneSpreadSlider.getValue());
+                System.out.println("Line Thickness: " +(int) zoneSpreadSlider.getValue());
+            }
+        });
+        sliderPanel.add(zoneSpreadLabel);
+        sliderPanel.add(zoneSpreadSlider);
+
 
         add(sliderPanel, BorderLayout.SOUTH);
     }
@@ -275,6 +328,11 @@ public class RpgMapGeneratorView extends JFrame {
         }
         raster.setPixels(0, 0, matrix1[0].length, matrix1.length, pixels);
 
+        // Close the previous "Generated Zones" frame if it exists
+        if (lastGeneratedZonesFrame != null) {
+            lastGeneratedZonesFrame.dispose();
+        }
+
         //Opens Image Window
         JInternalFrame frame = new JInternalFrame(windowTitle, true,true, true, true);
         Container container = frame.getContentPane();
@@ -285,6 +343,9 @@ public class RpgMapGeneratorView extends JFrame {
         frame.pack();
         theDesktop.add(frame);
         frame.setVisible(true);
+
+        // Update lastGeneratedZonesFrame with the new frame reference
+        lastGeneratedZonesFrame = frame;
     }
 
 
@@ -326,7 +387,11 @@ public class RpgMapGeneratorView extends JFrame {
                         int y = e.getY();
                         Graphics2D g2d = canvasImage.createGraphics();
                         g2d.setColor(getSelectedColor());
+
+                        // Setting the line thickness
+                        g2d.setStroke(new BasicStroke(lineThickness));
                         g2d.drawLine(prevX, prevY, x, y);
+
                         g2d.dispose();
                         repaint();
                         prevX = x;

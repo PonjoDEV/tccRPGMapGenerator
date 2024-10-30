@@ -19,7 +19,19 @@ public class RpgMapGeneratorController {
     //deviation means how often the analysed pixel will differ from its surroundings
     //TODO Still needs to find a better way to compare the current pixel to its surroundings
     //canvasMutation means the current pixel chance to change from its original value
-    double surroundingWeight, mutationChance, perlinNoise;
+    double surroundingWeight, mutationChance, perlinNoise, propDensity;
+
+    int zoneSpread;
+
+    public int getZoneSpread() {
+        return zoneSpread;
+    }
+
+    public void setZoneSpread(int zoneSpread) {
+        this.zoneSpread = zoneSpread;
+    }
+
+
 
     public int[][] getMatR() {
         return matR;
@@ -76,6 +88,10 @@ public class RpgMapGeneratorController {
     public void setSurroundingWeight(double surroundingWeight) {
         this.surroundingWeight = surroundingWeight;
     }
+
+    public double getPropDensity() { return propDensity; }
+
+    public void setPropDensity(double propDensity) { this.propDensity = propDensity; }
 
     public double getSPerlinNoise() {
         return perlinNoise;
