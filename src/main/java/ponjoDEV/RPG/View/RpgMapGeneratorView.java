@@ -22,23 +22,18 @@ public class RpgMapGeneratorView extends JFrame {
     private final JTextField heightField = new JTextField("800", 5);
     private final JComboBox<String> colorMenu = new JComboBox<>(new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"});
     private String selectedColor = "Grassland/Forest";
-    private int lineThickness = 1; // Default line thickness
+    private int lineThickness;
 
 
     public BufferedImage getCanvasImage() {
         return canvasImage;
     }
 
-    public void setCanvasImage(BufferedImage canvasImage) {
-        this.canvasImage = canvasImage;
-    }
+    //public void setCanvasImage(BufferedImage canvasImage) { this.canvasImage = canvasImage;}
 
     private BufferedImage canvasImage;
 
     private JInternalFrame lastGeneratedZonesFrame; // Track the last generated zones window
-
-    // Panel to hold dinamic drop-downs
-    private JPanel colorMenuPanel = new JPanel();
 
     public JTextField getWidthField() {
         return widthField;
@@ -47,6 +42,9 @@ public class RpgMapGeneratorView extends JFrame {
     public JTextField getHeightField() {
         return heightField;
     }
+    public int getLineThickness() { return lineThickness; }
+
+    public void setLineThickness(int lineThickness) { this.lineThickness = lineThickness; }
 
     class MyJPanel extends JPanel{
         private ImageIcon imageIcon;
@@ -182,7 +180,7 @@ public class RpgMapGeneratorView extends JFrame {
             @Override
             public void stateChanged(ChangeEvent e) {
                 rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/100.0);
-                System.out.println("Surrounding weight: " + surroundWeightSlider.getValue()/100.0);
+                System.out.println("Surrounding weight: " + rpgController.getSurroundingWeight());
             }
         });
         sliderPanel.add(surroundWeight);
@@ -197,7 +195,7 @@ public class RpgMapGeneratorView extends JFrame {
             @Override
             public void stateChanged(ChangeEvent e) {
                 rpgController.setMutationChance(mutationChanceSlider.getValue()/100.0);
-                System.out.println("Mutation Chance: " + mutationChanceSlider.getValue()/100.0);
+                System.out.println("Mutation Chance: " + rpgController.getMutationChance());
             }
         });
         sliderPanel.add(mutationChanceLabel);
@@ -211,7 +209,7 @@ public class RpgMapGeneratorView extends JFrame {
             @Override
             public void stateChanged(ChangeEvent e) {
                 rpgController.setPerlinNoise(perlinNoiseSlider.getValue()/1000.0);
-                System.out.println("Perlin Noise: " + perlinNoiseSlider.getValue()/1000.0);
+                System.out.println("Perlin Noise: " + rpgController.getPerlinNoise());
             }
         });
         sliderPanel.add(perlinNoise);
@@ -226,21 +224,23 @@ public class RpgMapGeneratorView extends JFrame {
             @Override
             public void stateChanged(ChangeEvent e) {
                 rpgController.setPropDensity(propDensitySlider.getValue()/100.0);
-                System.out.println("Prop Density: " + propDensitySlider.getValue()/100.0);
+                System.out.println("Prop Density: " + rpgController.getPropDensity());
             }
         });
+        /* //
         sliderPanel.add(propDensityLabel);
         sliderPanel.add(propDensitySlider);
+        //*/
 
         // Slider 5: Line Thickness
         JLabel thicknessLabel = new JLabel("Line Thickness");
-        JSlider thicknessSlider = new JSlider(1, 100);
-        thicknessSlider.setValue(1); // Default thickness
+        JSlider thicknessSlider = new JSlider(1, 10);
+        thicknessSlider.setValue(7); // Default thickness
         thicknessSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                lineThickness = thicknessSlider.getValue();
-                System.out.println("Line Thickness: " + lineThickness);
+                lineThickness = thicknessSlider.getValue()*10;
+                System.out.println("Line Thickness: " + getLineThickness() );
             }
         });
         sliderPanel.add(thicknessLabel);
@@ -248,18 +248,23 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 6: Zone Spread
         JLabel zoneSpreadLabel = new JLabel("Zone Spread");
-        JSlider zoneSpreadSlider = new JSlider(1, 10);
+        JSlider zoneSpreadSlider = new JSlider(5, 20);
         zoneSpreadSlider.setValue(1); // Default Zone Spread
         zoneSpreadSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
                 rpgController.setZoneSpread((int) zoneSpreadSlider.getValue());
-                System.out.println("Line Thickness: " +(int) zoneSpreadSlider.getValue());
+                System.out.println("Zone Spread: " + rpgController.getZoneSpread());
             }
         });
         sliderPanel.add(zoneSpreadLabel);
         sliderPanel.add(zoneSpreadSlider);
 
+        rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/100.0);
+        rpgController.setMutationChance(mutationChanceSlider.getValue()/100.0);
+        rpgController.setPropDensity(propDensitySlider.getValue()/100.0);
+        lineThickness = thicknessSlider.getValue()*10;
+        rpgController.setZoneSpread((int) zoneSpreadSlider.getValue());
 
         add(sliderPanel, BorderLayout.SOUTH);
     }

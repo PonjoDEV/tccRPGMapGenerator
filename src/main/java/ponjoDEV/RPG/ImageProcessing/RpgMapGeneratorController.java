@@ -1,10 +1,8 @@
 package ponjoDEV.RPG.ImageProcessing;
 
 import ponjoDEV.RPG.View.RpgMapGeneratorView;
-import javax.imageio.ImageIO;
+
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public class RpgMapGeneratorController {
@@ -14,14 +12,13 @@ public class RpgMapGeneratorController {
     }
 
     //Mat being the original image, and zones being the new generated image with the zones of each kind of terrain/assets
-    private int[][] matR, matG, matB, zoneR, zoneG, zoneB;
+    private int[][] matR, matG, matB, zoneR, zoneG, zoneB, visited, spreaded;
 
     //deviation means how often the analysed pixel will differ from its surroundings
-    //TODO Still needs to find a better way to compare the current pixel to its surroundings
     //canvasMutation means the current pixel chance to change from its original value
     double surroundingWeight, mutationChance, perlinNoise, propDensity;
 
-    int zoneSpread;
+    int zoneSpread, minY= Integer.MAX_VALUE, minX= Integer.MAX_VALUE, maxY=0, maxX=0;;
 
     public int getZoneSpread() {
         return zoneSpread;
@@ -109,21 +106,31 @@ public class RpgMapGeneratorController {
         this.mutationChance = mutationChance;
     }
 
-    public void fillUpZones(int [][] red, int [][] green, int [][] blue, double surroundingWeight, double mutationChance) {
+    public void fillUpZones(int [][] red, int [][] green, int [][] blue) {
         //Saving the most used colors from the canvas in case all around the analysed pixel are blank spots
         HashMap<String, Integer> canvasColors = new HashMap<>();
         registerColors(0, red.length, 0, red[0].length, red, blue, green, canvasColors);
-
-        /*
-        // Call the view to generate the drop-down menus
-        view.createColorDropdowns(canvasColors);
-        //*/
 
         //Ordering the most used color on the whole canvas
         ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors;
         mostUsedGlobalColors = orderColorUsage(canvasColors);
 
-        /* NORMAL PIXEL SELECTION ORDER (LOOKS UNNATURAL)
+        markDrawnZones(red, green, blue);
+        spreadDrawnZones(red, green, blue);
+
+
+
+        //randomFill(red, green, blue, mostUsedGlobalColors);
+
+        //normalFill(red, green, blue, mostUsedGlobalColors);
+
+
+    }
+
+    private void spreadDrawnZones(int[][] red, int[][] green, int[][] blue) {
+        int maxSpread = getZoneSpread();
+        int mark = 1;
+
         for (int i = 0; i < red.length - 1; i++) {
             for (int j = 0; j < red[0].length - 1; j++) {
 
@@ -131,18 +138,110 @@ public class RpgMapGeneratorController {
                 int greenPx = green[i][j];
                 int bluePx = blue[i][j];
 
-                //If it's a blank space, it should check its surroundings and adjusting according to it, plus a variation chance
-                if (redPx == 255 && greenPx == 255 && bluePx == 255) {
-                    //If blank it MUST change its color, so mutationChance chance set to 1
-                    changePixel(red, green, blue, i, j, mostUsedGlobalColors, surroundingWeight, 1.0);
-                } else {
-                    changePixel(red, green, blue, i, j, mostUsedGlobalColors, surroundingWeight, mutationChance);
+                if (!pixelIsBlank(redPx,greenPx,bluePx) && notVisited(i,j)) {
+                    spreadZone(i,j,red,green,blue,maxSpread,redPx,greenPx,bluePx,mark);
+                    mark-=1;
                 }
             }
         }
-        */
+    }
 
-        /* RANDOM PIXEL SELECTION ORDER*/
+    private void markDrawnZones(int[][] red, int[][] green, int[][] blue) {
+        //TODO Change it so each zone is a different object
+        //TODO Create Class ZONE with these attributes plus rgb values and mark
+        //Mark is to separate each zone into a single one
+        int mark=1;
+        minY= Integer.MAX_VALUE;
+        minX= Integer.MAX_VALUE;
+        maxY=0;
+        maxX=0;
+
+        for (int i = 0; i < red.length - 1; i++) {
+            for (int j = 0; j < red[0].length - 1; j++) {
+
+                int redPx = red[i][j];
+                int greenPx = green[i][j];
+                int bluePx = blue[i][j];
+
+                if (!pixelIsBlank(redPx,greenPx,bluePx) && notVisited(i,j)) {
+                    getZoneDimensions(i, j, red, green, blue, redPx, greenPx, bluePx, mark);
+                    mark+=1;
+                }
+            }
+        }
+
+        System.out.println("Zona minima Y: "+minY+" Zona minima X: "+minX+"\nZona maxima Y: "+maxY+" Zona maxima X: "+maxX);
+    }
+
+    private boolean notVisited(int i, int j) {
+        return visited[i][j] == 0;
+    }
+
+    private void getZoneDimensions(int i, int j, int[][] red, int[][] green, int[][] blue, int redPX, int greenPX, int bluePX, int mark) {
+
+        visited[i][j] = mark;
+        if (i<minY)minY=i;
+        if (i>maxY)maxY=i;
+        if (j<minX)minX=j;
+        if (j>maxX)maxX=j;
+
+        for (int y = i-1; y <= i+1; y++) {
+            for (int x = j-1; x < j+1; x++) {
+                if (x>=0 && x<red[0].length && y>=0 && y<red.length && y!=i && x!=j){
+                    if (notVisited(y,x)){
+                        if (equalColors(red[i][j],redPX,green[i][j],greenPX,blue[i][j],bluePX)){
+                            getZoneDimensions(y,x,red,green,blue,redPX,greenPX,bluePX,mark);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean equalColors(int redPX, int redPx, int greenPX, int greenPx, int bluePX, int bluePx) {
+        return redPX == redPx && greenPx == greenPX && bluePx == bluePX;
+    }
+
+
+    //TODO NOT PROPERLY IMPLEMENTED YET
+    private void spreadZone(int i, int j, int[][] red, int[][] green, int[][] blue, int maxSpread, int redPX, int greenPX, int bluePX, int mark) {
+        maxSpread-=1;
+        visited[i][j] = mark;
+
+        zoneR[i][j] = redPX;
+        zoneG[i][j] = greenPX;
+        zoneB[i][j] = bluePX;
+
+        for (int y = i-1; y <= i+1; y++) {
+            for (int x = j - 1; x < j + 1; x++) {
+                if (x>=0 && x<red[0].length && y>=0 && y<red.length && y!=i && x!=j) {
+                    if (notVisited(y,x)) {
+                        spreadZone(i, j, red, green, blue, maxSpread, redPX, greenPX, bluePX, mark);
+                    }
+                }
+            }
+        }
+    }
+
+    private void normalFill(int[][] red, int[][] green, int[][] blue, ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors) {
+        for (int i = 0; i < red.length - 1; i++) {
+            for (int j = 0; j < red[0].length - 1; j++) {
+
+                int redPx = red[i][j];
+                int greenPx = green[i][j];
+                int bluePx = blue[i][j];
+
+                if (pixelIsBlank(redPx,greenPx,bluePx)){
+                    //If blank it MUST change its color, so mutationChance chance set to 1
+                    changePixel(red, green, blue, i, j, mostUsedGlobalColors, getSurroundingWeight(), 1.0);
+                }else {
+                    changePixel(red, green, blue, i, j, mostUsedGlobalColors, getSurroundingWeight(), getMutationChance());
+                }
+            }
+        }
+    }
+
+    private void randomFill(int[][] red, int[][] green, int[][] blue, ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors) {
 
         // Vector wich will be used to random select pixels on the scrren to be filled
         int pixelCount = (red.length * red[0].length);
@@ -152,7 +251,7 @@ public class RpgMapGeneratorController {
         }
         shuffleVector(randomPick);
 
-        for (int i = 0; i < pixelCount - 1; i++) {
+        for (int i = 0; i < pixelCount; i++) {
             int x = randomPick[i] % red.length;
             int y = randomPick[i] / red.length;
 
@@ -160,47 +259,13 @@ public class RpgMapGeneratorController {
             int greenPx = green[x][y];
             int bluePx = blue[x][y];
 
-            //If it's a blank space, it should check its surroundings and adjusting according to it, plus a variation chance
-            if (redPx == 255 && greenPx == 255 && bluePx == 255) {
+            if (pixelIsBlank(redPx,greenPx,bluePx)) {
                 //If blank it MUST change its color, so mutationChance chance set to 1
-                changePixel(red, green, blue, x, y, mostUsedGlobalColors, surroundingWeight, 1.0);
+                changePixel(red, green, blue, x, y, mostUsedGlobalColors, getSurroundingWeight(), 1.0);
             } else {
-                changePixel(red, green, blue, x, y, mostUsedGlobalColors, surroundingWeight, mutationChance);
+                changePixel(red, green, blue, x, y, mostUsedGlobalColors, getSurroundingWeight(), getMutationChance());
             }
         }
-        //*/
-
-        /* PERLIN NOISE
-
-
-            // Instantiate the Perlin noise generator
-            PerlinNoise perlin = new PerlinNoise();
-
-            // Create a Perlin noise-based grid for pixel selection
-            double[][] noiseGrid = new double[red.length][red[0].length];
-            for (int i = 0; i < red.length; i++) {
-                for (int j = 0; j < red[0].length; j++) {
-                    noiseGrid[i][j] = perlin.noise(i * getSPerlinNoise(), j * getSPerlinNoise()); // Scale down for smoother gradients
-                }
-            }
-
-            // Process each pixel based on the noise values
-            for (int i = 0; i < red.length; i++) {
-                for (int j = 0; j < red[0].length; j++) {
-                    if (noiseGrid[i][j] > 0.5) { // Use a threshold to determine if it’s a zone to apply color
-                        int redPx = red[i][j];
-                        int greenPx = green[i][j];
-                        int bluePx = blue[i][j];
-
-                        double mutate = mutationChance;
-                        if (redPx == 255 && greenPx == 255 && bluePx == 255) {
-                            mutate = 1.0;
-                        }
-                        changePixel(red, green, blue, i, j, mostUsedGlobalColors, surroundingWeight, mutate);
-                    }
-                }
-            }
-        //*/
     }
 
     private ArrayList<Map.Entry<String,Integer>> orderColorUsage (HashMap<String,Integer> usedColors){
@@ -282,6 +347,11 @@ public class RpgMapGeneratorController {
         return pick;
     }
 
+    //Cleaning the zones from small noisy areas after having them painted
+    private void eraseSmallZones (int [][] red, int [][] green, int [][] blue){
+
+    }
+
     private int[] stringToRGB (String colorValue){
         int [] rgb = new int[3];
         String [] rgbCode = colorValue.split(",");
@@ -337,10 +407,15 @@ public class RpgMapGeneratorController {
 
             copyMatToZone();
 
-            // If both changeCanvas and deviation are too high the results are not good,
-            // Especially with high changeCanvas values
-            // Recommended values: deviation 0.8 and changeCanvas 0.2
-            fillUpZones(zoneR, zoneG, zoneB, getSurroundingWeight(), getMutationChance());
+
+            //Initializing the visited vector with 0's
+            for (int i = 0; i < matR.length; i++) {
+                for (int j = 0; j < matR[0].length; j++) {
+                    visited[i][j] =0;
+                }
+            }
+
+            fillUpZones(zoneR, zoneG, zoneB);
         }
     }
 
@@ -351,6 +426,10 @@ public class RpgMapGeneratorController {
         zoneR = new int[height][width];
         zoneG = new int[height][width];
         zoneB = new int[height][width];
+
+        visited = new int[height][width];
+
+        spreaded = new int[height][width];
 
         for (int i = 0; i < matR.length; i++) {
             for (int j = 0; j < matR[0].length; j++) {
@@ -372,5 +451,9 @@ public class RpgMapGeneratorController {
             ar[index] = ar[i];
             ar[i] = a;
         }
+    }
+
+    private boolean pixelIsBlank(int redPx, int greenPx, int bluePx) {
+        return redPx == 255 && greenPx == 255 && bluePx == 255;
     }
 }
