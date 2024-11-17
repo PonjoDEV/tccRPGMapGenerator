@@ -235,7 +235,7 @@ public class RpgMapGeneratorView extends JFrame {
         // Slider 5: Line Thickness
         JLabel thicknessLabel = new JLabel("Line Thickness");
         JSlider thicknessSlider = new JSlider(1, 10);
-        thicknessSlider.setValue(7); // Default thickness
+        thicknessSlider.setValue(1); // Default thickness
         thicknessSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -249,7 +249,7 @@ public class RpgMapGeneratorView extends JFrame {
         // Slider 6: Zone Spread
         JLabel zoneSpreadLabel = new JLabel("Zone Spread");
         JSlider zoneSpreadSlider = new JSlider(5, 20);
-        zoneSpreadSlider.setValue(1); // Default Zone Spread
+        zoneSpreadSlider.setValue(15); // Default Zone Spread
         zoneSpreadSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {

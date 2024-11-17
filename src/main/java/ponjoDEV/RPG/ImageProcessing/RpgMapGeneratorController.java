@@ -1,5 +1,6 @@
 package ponjoDEV.RPG.ImageProcessing;
 
+import ponjoDEV.RPG.Model.Zone;
 import ponjoDEV.RPG.View.RpgMapGeneratorView;
 
 import java.awt.image.BufferedImage;
@@ -18,7 +19,7 @@ public class RpgMapGeneratorController {
     //canvasMutation means the current pixel chance to change from its original value
     double surroundingWeight, mutationChance, perlinNoise, propDensity;
 
-    int zoneSpread, minY= Integer.MAX_VALUE, minX= Integer.MAX_VALUE, maxY=0, maxX=0;;
+    int zoneSpread;;
 
     public int getZoneSpread() {
         return zoneSpread;
@@ -115,9 +116,17 @@ public class RpgMapGeneratorController {
         ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors;
         mostUsedGlobalColors = orderColorUsage(canvasColors);
 
-        markDrawnZones(red, green, blue);
-        spreadDrawnZones(red, green, blue);
+        //Creating a array of Zones to save the drawn zones information
+        ArrayList<Zone> zones = new ArrayList<>();
 
+        registerZones(red, green, blue, zones, 1);
+
+        //spreadDrawnZones(red, green, blue, zones);
+
+        for (int i = 0; i < zones.size(); i++) {
+            Zone zone = zones.get(i);
+            System.out.println("Zone "+zone.getTag()+"\nZona minima Y: "+zone.getBegY()+" Zona minima X: "+zone.getBegX()+"\nZona maxima Y: "+zone.getEndY()+" Zona maxima X: "+zone.getEndX()+"\nTipo "+zone.getType());
+        }
 
 
         //randomFill(red, green, blue, mostUsedGlobalColors);
@@ -127,9 +136,8 @@ public class RpgMapGeneratorController {
 
     }
 
-    private void spreadDrawnZones(int[][] red, int[][] green, int[][] blue) {
+    private void spreadDrawnZones(int[][] red, int[][] green, int[][] blue, ArrayList<Zone> zones) {
         int maxSpread = getZoneSpread();
-        int mark = 1;
 
         for (int i = 0; i < red.length - 1; i++) {
             for (int j = 0; j < red[0].length - 1; j++) {
@@ -138,85 +146,102 @@ public class RpgMapGeneratorController {
                 int greenPx = green[i][j];
                 int bluePx = blue[i][j];
 
-                if (!pixelIsBlank(redPx,greenPx,bluePx) && notVisited(i,j)) {
-                    spreadZone(i,j,red,green,blue,maxSpread,redPx,greenPx,bluePx,mark);
-                    mark-=1;
+                if (!pixelIsBlank(redPx,greenPx,bluePx)&&!notVisited(i,j)) {
+                    System.out.println("Emtrou como: red " +redPx+ " green "+greenPx+"  blue "+ bluePx);
+                    spreadZone(i, j, red, green, blue, maxSpread, redPx, greenPx, bluePx, visited[i][j]);
                 }
             }
         }
     }
 
-    private void markDrawnZones(int[][] red, int[][] green, int[][] blue) {
-        //TODO Change it so each zone is a different object
-        //TODO Create Class ZONE with these attributes plus rgb values and mark
-        //Mark is to separate each zone into a single one
-        int mark=1;
-        minY= Integer.MAX_VALUE;
-        minX= Integer.MAX_VALUE;
-        maxY=0;
-        maxX=0;
-
-        for (int i = 0; i < red.length - 1; i++) {
-            for (int j = 0; j < red[0].length - 1; j++) {
-
+    private void registerZones(int[][] red, int[][] green, int[][] blue, ArrayList<Zone> zones, int mark) {
+        for (int i = 0; i < red.length; i++) {
+            for (int j = 0; j < red[0].length; j++) {
                 int redPx = red[i][j];
                 int greenPx = green[i][j];
                 int bluePx = blue[i][j];
 
-                if (!pixelIsBlank(redPx,greenPx,bluePx) && notVisited(i,j)) {
-                    getZoneDimensions(i, j, red, green, blue, redPx, greenPx, bluePx, mark);
-                    mark+=1;
-                }
-            }
-        }
+                if (!pixelIsBlank(redPx, greenPx, bluePx) && notVisited(i, j)) {
+                    Zone drawnZone = new Zone();
+                    drawnZone.setTag(mark);
+                    drawnZone.setTypeByRGB(redPx, greenPx, bluePx);
+                    zones.add(drawnZone);
 
-        System.out.println("Zona minima Y: "+minY+" Zona minima X: "+minX+"\nZona maxima Y: "+maxY+" Zona maxima X: "+maxX);
-    }
-
-    private boolean notVisited(int i, int j) {
-        return visited[i][j] == 0;
-    }
-
-    private void getZoneDimensions(int i, int j, int[][] red, int[][] green, int[][] blue, int redPX, int greenPX, int bluePX, int mark) {
-
-        visited[i][j] = mark;
-        if (i<minY)minY=i;
-        if (i>maxY)maxY=i;
-        if (j<minX)minX=j;
-        if (j>maxX)maxX=j;
-
-        for (int y = i-1; y <= i+1; y++) {
-            for (int x = j-1; x < j+1; x++) {
-                if (x>=0 && x<red[0].length && y>=0 && y<red.length && y!=i && x!=j){
-                    if (notVisited(y,x)){
-                        if (equalColors(red[i][j],redPX,green[i][j],greenPX,blue[i][j],bluePX)){
-                            getZoneDimensions(y,x,red,green,blue,redPX,greenPX,bluePX,mark);
-                        }
-                    }
+                    getZoneDimensions(i, j, red, green, blue, redPx, greenPx, bluePx, mark, drawnZone);
+                    mark++;
                 }
             }
         }
     }
 
-    private boolean equalColors(int redPX, int redPx, int greenPX, int greenPx, int bluePX, int bluePx) {
-        return redPX == redPx && greenPx == greenPX && bluePx == bluePX;
+    private void getZoneDimensions(int i, int j, int[][] red, int[][] green, int[][] blue, int redPX, int greenPX, int bluePX, int mark, Zone zone) {
+
+        Stack<int[]> stack = new Stack<>();
+        stack.push(new int[]{i, j});
+
+        while (!stack.isEmpty()) {
+            int[] current = stack.pop();
+            int y = current[0];
+            int x = current[1];
+
+            if (y < 0 || y >= red.length || x < 0 || x >= red[0].length || visited[y][x] == mark) {
+                continue;
+            }
+
+            if (!equalColors(red[y][x], redPX, green[y][x], greenPX, blue[y][x], bluePX)) {
+                continue;
+            }
+
+            visited[y][x] = mark;
+
+            zone.setBegY(Math.min(zone.getBegY(), y));
+            zone.setEndY(Math.max(zone.getEndY(), y));
+            zone.setBegX(Math.min(zone.getBegX(), x));
+            zone.setEndX(Math.max(zone.getEndX(), x));
+
+            stack.push(new int[]{y + 1, x});
+            stack.push(new int[]{y - 1, x});
+            stack.push(new int[]{y, x + 1});
+            stack.push(new int[]{y, x - 1});
+        }
     }
 
 
     //TODO NOT PROPERLY IMPLEMENTED YET
-    private void spreadZone(int i, int j, int[][] red, int[][] green, int[][] blue, int maxSpread, int redPX, int greenPX, int bluePX, int mark) {
+    private void spreadZone(int i, int j, int[][] red, int[][] green, int[][] blue, int maxSpread, int redPx, int greenPx, int bluePx, int mark) {
         maxSpread-=1;
         visited[i][j] = mark;
 
-        zoneR[i][j] = redPX;
-        zoneG[i][j] = greenPX;
-        zoneB[i][j] = bluePX;
+        //System.out.println("Red "+red[i][j]+" Green "+green[i][j]+" Blue "+blue[i][j]+" ########### red " +redPx+ " green "+greenPx+"  blue "+ bluePx);
+        red[i][j] = redPx;
+        green[i][j] = greenPx;
+        blue[i][j] = bluePx;
 
+        /*
         for (int y = i-1; y <= i+1; y++) {
             for (int x = j - 1; x < j + 1; x++) {
-                if (x>=0 && x<red[0].length && y>=0 && y<red.length && y!=i && x!=j) {
-                    if (notVisited(y,x)) {
-                        spreadZone(i, j, red, green, blue, maxSpread, redPX, greenPX, bluePX, mark);
+                if (maxSpread>0) {
+                    if (x >= 0 && x < red[0].length && y >= 0 && y < red.length) {
+                        if (!(y == i && x == j)) {
+                            if (pixelIsBlank(redPx, greenPx, bluePx)) {
+                                spreadZone(i, j, red, green, blue, maxSpread, redPx, greenPx, bluePx, mark);
+                            }
+                        }
+                    }
+                }
+            }
+        }*/
+
+
+        for (int y = i-1; y <= i+1; y++) {
+            for (int x = j-1; x < j+1; x++) {
+                if (x>=0 && x<red[0].length && y>=0 && y<red.length ){
+                    if (!(y==i && x==j)) {
+                        if (notVisited(y, x)) {
+                            if (notVisited(x,y) && maxSpread>0) {
+                                spreadZone(i, j, red, green, blue, maxSpread, redPx, greenPx, bluePx, mark);
+                            }
+                        }
                     }
                 }
             }
@@ -407,7 +432,6 @@ public class RpgMapGeneratorController {
 
             copyMatToZone();
 
-
             //Initializing the visited vector with 0's
             for (int i = 0; i < matR.length; i++) {
                 for (int j = 0; j < matR[0].length; j++) {
@@ -456,4 +480,14 @@ public class RpgMapGeneratorController {
     private boolean pixelIsBlank(int redPx, int greenPx, int bluePx) {
         return redPx == 255 && greenPx == 255 && bluePx == 255;
     }
+
+    private boolean equalColors(int redPX, int redPx, int greenPX, int greenPx, int bluePX, int bluePx) {
+        return redPX == redPx && greenPx == greenPX && bluePx == bluePX;
+    }
+
+    private boolean notVisited(int i, int j) {
+        return visited[i][j] == 0;
+    }
+
+
 }
