@@ -201,22 +201,7 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(mutationChanceLabel);
         sliderPanel.add(mutationChanceSlider);
 
-        /*// Slider 3: Perlin noise
-        JLabel perlinNoise = new JLabel("Perlin Noise");
-        JSlider perlinNoiseSlider = new JSlider(0, 100);
-        perlinNoiseSlider.setValue(0);
-        perlinNoiseSlider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                rpgController.setPerlinNoise(perlinNoiseSlider.getValue()/1000.0);
-                System.out.println("Perlin Noise: " + rpgController.getPerlinNoise());
-            }
-        });
-        sliderPanel.add(perlinNoise);
-        sliderPanel.add(perlinNoiseSlider);
-        //*/
-
-        // Slider 4(?): Prop density
+        // Slider 3: Prop density
         JLabel propDensityLabel = new JLabel("Prop Density");
         JSlider propDensitySlider = new JSlider(0, 100);
         propDensitySlider.setValue(30);
@@ -227,12 +212,12 @@ public class RpgMapGeneratorView extends JFrame {
                 System.out.println("Prop Density: " + rpgController.getPropDensity());
             }
         });
-        /* //
+
         sliderPanel.add(propDensityLabel);
         sliderPanel.add(propDensitySlider);
-        //*/
 
-        // Slider 5: Line Thickness
+
+        // Slider 4: Line Thickness
         JLabel thicknessLabel = new JLabel("Line Thickness");
         JSlider thicknessSlider = new JSlider(1, 10);
         thicknessSlider.setValue(1); // Default thickness
@@ -246,10 +231,10 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(thicknessLabel);
         sliderPanel.add(thicknessSlider);
 
-        // Slider 6: Zone Spread
+        // Slider 5: Zone Spread
         JLabel zoneSpreadLabel = new JLabel("Zone Spread");
-        JSlider zoneSpreadSlider = new JSlider(5, 20);
-        zoneSpreadSlider.setValue(15); // Default Zone Spread
+        JSlider zoneSpreadSlider = new JSlider(20, 100);
+        zoneSpreadSlider.setValue(20); // Default Zone Spread
         zoneSpreadSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {

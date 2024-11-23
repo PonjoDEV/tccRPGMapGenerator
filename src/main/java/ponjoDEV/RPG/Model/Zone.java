@@ -1,7 +1,23 @@
 package ponjoDEV.RPG.Model;
 
 public class Zone {
-    int begY = Integer.MAX_VALUE, begX = Integer.MAX_VALUE, endY=0, endX=0, red, green, blue, tag;
+    int begY = Integer.MAX_VALUE, begX = Integer.MAX_VALUE, endY=0, endX=0, tag, priority;
+    String type;
+    int [] initCoord, rgb = new int[3];
+
+    public int[] getRgb() { return rgb; }
+
+    public void setRgb(int[] rgb) { this.rgb = rgb; }
+
+    public int[] getInitCoord() { return initCoord; }
+
+    public void setInitCoord(int[] initCoord) {
+        this.initCoord = initCoord;
+    }
+
+    public int getPriority() { return priority; }
+
+    public void setPriority(int priority) { this.priority = priority; }
 
     public String getType() {
         return type;
@@ -11,7 +27,6 @@ public class Zone {
         this.type = type;
     }
 
-    String type;
 
     public int getBegY() {
         return begY;
@@ -45,29 +60,19 @@ public class Zone {
         this.endX = endX;
     }
 
-    public int getRed() {
-        return red;
-    }
+    public int getRed() { return rgb[0]; }
 
-    public void setRed(int red) {
-        this.red = red;
-    }
+    public void setRed(int red) { this.rgb[0] = red; }
 
-    public int getGreen() {
-        return green;
-    }
+    public int getGreen() { return rgb[1]; }
 
     public void setGreen(int green) {
-        this.green = green;
+        this.rgb[1] = green;
     }
 
-    public int getBlue() {
-        return blue;
-    }
+    public int getBlue() { return rgb[2]; }
 
-    public void setBlue(int blue) {
-        this.blue = blue;
-    }
+    public void setBlue(int blue) { this.rgb[2] = blue; }
 
     public int getTag() {
         return tag;
@@ -77,41 +82,44 @@ public class Zone {
         this.tag = tag;
     }
 
-    public void setTypeByRGB(int red, int green, int blue){
-        //TODO By each used color compare values and set Type name
-        if (red == 255){
-            if (green == 0){
-                if (blue == 0){
+    public void setTypeByRGB(int [] rgb) {
+        if (rgb[0] == 255) {
+            if (rgb[1] == 0) {
+                if (rgb[2] == 0) {
                     setType("Construction");
-                }else if(blue == 255){
+                    setPriority(5);
+                } else if (rgb[2] == 255) {
                     setType("Roads");
+                    setPriority(6);
                 }
-            }else{
-                if (green == 255){
-                    if (blue == 0){
+            } else {
+                if (rgb[1] == 255) {
+                    if (rgb[2] == 0) {
                         setType("Desert/Sand");
+                        setPriority(3);
                     }
-                    if (blue == 255){
+                    if (rgb[2] == 255) {
 
                     }
                 }
             }
-        }else{
-            if (green == 0){
-                if (blue ==0){
+        } else {
+            if (rgb[1] == 0) {
+                if (rgb[2] == 0) {
                     setType("Mountain");
-                }else{
+                    setPriority(1);
+                } else {
                     setType("Water");
+                    setPriority(4);
                 }
-            }else{
-                if (green == 255){
-                    if (blue ==0){
+            } else {
+                if (rgb[1] == 255) {
+                    if (rgb[2] == 0) {
                         setType("Grassland/Forest");
+                        setPriority(2);
                     }
                 }
             }
-
         }
-
     }
 }
