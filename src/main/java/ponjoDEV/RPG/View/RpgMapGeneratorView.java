@@ -19,7 +19,7 @@ public class RpgMapGeneratorView extends JFrame {
 
     // Array of possible kinds of terrain
     private final JTextField widthField = new JTextField("1200", 5);
-    private final JTextField heightField = new JTextField("800", 5);
+    private final JTextField heightField = new JTextField("720", 5);
     private final JComboBox<String> colorMenu = new JComboBox<>(new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"});
     private String selectedColor = "Grassland/Forest";
     private int lineThickness;
@@ -63,11 +63,12 @@ public class RpgMapGeneratorView extends JFrame {
         }
 
         public Dimension getPreferredSize(){
-            return new Dimension(imageIcon.getIconWidth(),imageIcon.getIconHeight());
+            return new Dimension(1200, 720);
         }
     }
 
     public RpgMapGeneratorView() {
+        //Im kinda retarded
         super("RPG Map Generator");
 
         setLayout(new BorderLayout());
@@ -87,7 +88,7 @@ public class RpgMapGeneratorView extends JFrame {
 
         colorMenu.addActionListener(e -> selectedColor = (String) colorMenu.getSelectedItem());
 
-        setSize(1200, 800);
+        setSize(1200, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }
@@ -154,7 +155,7 @@ public class RpgMapGeneratorView extends JFrame {
 
     private void setupCanvas() {
         JInternalFrame frame = new JInternalFrame("Drawing Canvas", true, true, true, true);
-        frame.setSize(800, 600);
+        frame.setSize(1920, 1080);
         Container container = frame.getContentPane();
         DrawingPanel drawingPanel = new DrawingPanel();
         container.add(drawingPanel, BorderLayout.CENTER);
@@ -189,7 +190,7 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 2: Canvas Mutation
         JLabel mutationChanceLabel = new JLabel("Mutation Chance");
-        JSlider mutationChanceSlider = new JSlider(0, 100);
+        JSlider mutationChanceSlider = new JSlider(0, 99);
         mutationChanceSlider.setValue(30);
         mutationChanceSlider.addChangeListener(new ChangeListener() {
             @Override

@@ -1,7 +1,7 @@
 package ponjoDEV.RPG.Model;
 
 public class Zone {
-    int begY = Integer.MAX_VALUE, begX = Integer.MAX_VALUE, endY=0, endX=0, tag, priority;
+    int begY = Integer.MAX_VALUE, begX = Integer.MAX_VALUE, endY=0, endX=0, tag, priority, size=0;
     String type;
     int [] initCoord, rgb = new int[3];
 
@@ -27,6 +27,9 @@ public class Zone {
         this.type = type;
     }
 
+    public int getSize() {return size;}
+
+    public void setSize(int size) {this.size = size;}
 
     public int getBegY() {
         return begY;
@@ -83,20 +86,29 @@ public class Zone {
     }
 
     public void setTypeByRGB(int [] rgb) {
+
+        /*Priority Set:
+        Construction
+        Roads
+        Water
+        Mountain
+        Desert
+        Grass
+         */
         if (rgb[0] == 255) {
             if (rgb[1] == 0) {
                 if (rgb[2] == 0) {
                     setType("Construction");
-                    setPriority(5);
+                    setPriority(6);
                 } else if (rgb[2] == 255) {
                     setType("Roads");
-                    setPriority(6);
+                    setPriority(5);
                 }
             } else {
                 if (rgb[1] == 255) {
                     if (rgb[2] == 0) {
                         setType("Desert/Sand");
-                        setPriority(3);
+                        setPriority(2);
                     }
                     if (rgb[2] == 255) {
 
@@ -107,7 +119,7 @@ public class Zone {
             if (rgb[1] == 0) {
                 if (rgb[2] == 0) {
                     setType("Mountain");
-                    setPriority(1);
+                    setPriority(3);
                 } else {
                     setType("Water");
                     setPriority(4);
@@ -116,10 +128,12 @@ public class Zone {
                 if (rgb[1] == 255) {
                     if (rgb[2] == 0) {
                         setType("Grassland/Forest");
-                        setPriority(2);
+                        setPriority(1);
                     }
                 }
             }
         }
     }
+
+
 }
