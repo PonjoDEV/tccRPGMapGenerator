@@ -175,8 +175,8 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 1: Line Thickness
         JLabel thicknessLabel = new JLabel("Line Thickness");
-        JSlider thicknessSlider = new JSlider(1, 100);
-        thicknessSlider.setValue(1); // Default thickness
+        JSlider thicknessSlider = new JSlider(10, 100);
+        thicknessSlider.setValue(10); // Default thickness
         thicknessSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -204,7 +204,7 @@ public class RpgMapGeneratorView extends JFrame {
         // Slider 3: Surrouding Weight
         JLabel surroundWeight = new JLabel("Surrounding weight");
         JSlider surroundWeightSlider = new JSlider(90, 100);
-        surroundWeightSlider.setValue(90);
+        surroundWeightSlider.setValue(95);
         surroundWeightSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
