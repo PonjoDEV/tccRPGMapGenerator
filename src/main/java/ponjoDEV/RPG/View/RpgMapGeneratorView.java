@@ -173,10 +173,38 @@ public class RpgMapGeneratorView extends JFrame {
         JPanel sliderPanel = new JPanel();
         sliderPanel.setLayout(new GridLayout(5, 2));
 
-        // Slider 1: Deviation
+        // Slider 1: Line Thickness
+        JLabel thicknessLabel = new JLabel("Line Thickness");
+        JSlider thicknessSlider = new JSlider(1, 100);
+        thicknessSlider.setValue(1); // Default thickness
+        thicknessSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                lineThickness = thicknessSlider.getValue();
+                System.out.println("Line Thickness: " + getLineThickness() );
+            }
+        });
+        sliderPanel.add(thicknessLabel);
+        sliderPanel.add(thicknessSlider);
+
+        // Slider 2: Zone Spread
+        JLabel zoneSpreadLabel = new JLabel("Zone Spread");
+        JSlider zoneSpreadSlider = new JSlider(20, 100);
+        zoneSpreadSlider.setValue(20); // Default Zone Spread
+        zoneSpreadSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                rpgController.setZoneSpread((int) zoneSpreadSlider.getValue());
+                System.out.println("Zone Spread: " + rpgController.getZoneSpread());
+            }
+        });
+        sliderPanel.add(zoneSpreadLabel);
+        sliderPanel.add(zoneSpreadSlider);
+
+        // Slider 3: Surrouding Weight
         JLabel surroundWeight = new JLabel("Surrounding weight");
-        JSlider surroundWeightSlider = new JSlider(0, 100);
-        surroundWeightSlider.setValue(60);
+        JSlider surroundWeightSlider = new JSlider(90, 100);
+        surroundWeightSlider.setValue(90);
         surroundWeightSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -202,7 +230,7 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(mutationChanceLabel);
         sliderPanel.add(mutationChanceSlider);
 
-        // Slider 3: Prop density
+        // Slider 5: Prop density
         JLabel propDensityLabel = new JLabel("Prop Density");
         JSlider propDensitySlider = new JSlider(0, 100);
         propDensitySlider.setValue(30);
@@ -217,39 +245,10 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(propDensityLabel);
         sliderPanel.add(propDensitySlider);
 
-
-        // Slider 4: Line Thickness
-        JLabel thicknessLabel = new JLabel("Line Thickness");
-        JSlider thicknessSlider = new JSlider(1, 10);
-        thicknessSlider.setValue(1); // Default thickness
-        thicknessSlider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                lineThickness = thicknessSlider.getValue()*10;
-                System.out.println("Line Thickness: " + getLineThickness() );
-            }
-        });
-        sliderPanel.add(thicknessLabel);
-        sliderPanel.add(thicknessSlider);
-
-        // Slider 5: Zone Spread
-        JLabel zoneSpreadLabel = new JLabel("Zone Spread");
-        JSlider zoneSpreadSlider = new JSlider(20, 100);
-        zoneSpreadSlider.setValue(20); // Default Zone Spread
-        zoneSpreadSlider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                rpgController.setZoneSpread((int) zoneSpreadSlider.getValue());
-                System.out.println("Zone Spread: " + rpgController.getZoneSpread());
-            }
-        });
-        sliderPanel.add(zoneSpreadLabel);
-        sliderPanel.add(zoneSpreadSlider);
-
         rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/100.0);
         rpgController.setMutationChance(mutationChanceSlider.getValue()/100.0);
         rpgController.setPropDensity(propDensitySlider.getValue()/100.0);
-        lineThickness = thicknessSlider.getValue()*10;
+        setLineThickness(thicknessSlider.getValue());
         rpgController.setZoneSpread((int) zoneSpreadSlider.getValue());
 
         add(sliderPanel, BorderLayout.SOUTH);
