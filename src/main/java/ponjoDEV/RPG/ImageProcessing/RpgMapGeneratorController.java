@@ -13,7 +13,7 @@ public class RpgMapGeneratorController {
     }
 
     //Mat being the original image, and zones being the new generated image with the zones of each kind of terrain/assets
-    private int[][] matR, matG, matB, zoneR, zoneG, zoneB, drawn, spreaded;
+    private int[][] matR, matG, matB, matRCopy, matGCopy, matBCopy, drawn, spreaded;
 
     //deviation means how often the analysed pixel will differ from its surroundings
     //canvasMutation means the current pixel chance to change from its original value
@@ -51,26 +51,26 @@ public class RpgMapGeneratorController {
         this.matB = matB;
     }
 
-    public int[][] getZoneR() {
-        return zoneR;
+    public int[][] getMatRCopy() {
+        return matRCopy;
     }
 
-    public void setZoneR(int[][] zoneR) {
-        this.zoneR = zoneR;
+    public void setMatRCopy(int[][] matRCopy) {
+        this.matRCopy = matRCopy;
     }
 
-    public int[][] getZoneG() { return zoneG; }
+    public int[][] getMatGCopy() { return matGCopy; }
 
-    public void setZoneG(int[][] zoneG) {
-        this.zoneG = zoneG;
+    public void setMatGCopy(int[][] matGCopy) {
+        this.matGCopy = matGCopy;
     }
 
-    public int[][] getZoneB() {
-        return zoneB;
+    public int[][] getMatBCopy() {
+        return matBCopy;
     }
 
-    public void setZoneB(int[][] zoneB) {
-        this.zoneB = zoneB;
+    public void setMatBCopy(int[][] matBCopy) {
+        this.matBCopy = matBCopy;
     }
 
     public double getSurroundingWeight() {
@@ -84,14 +84,6 @@ public class RpgMapGeneratorController {
     public double getPropDensity() { return propDensity; }
 
     public void setPropDensity(double propDensity) { this.propDensity = propDensity; }
-
-    public double getSPerlinNoise() {
-        return perlinNoise;
-    }
-
-    public void setPerlinNoise(double perlinNoise) {
-        this.perlinNoise = perlinNoise;
-    }
 
     public double getMutationChance() {
         return mutationChance;
@@ -115,11 +107,14 @@ public class RpgMapGeneratorController {
         registerDrawnZones(red, green, blue, zones);
 
         boolean thereIsWhite = true;
+        randomFill(red, green, blue, zones, mostUsedGlobalColors);
+
+        int iteration = 0;
 
         while(thereIsWhite) {
 
             zones.sort(Comparator.comparingInt(Zone::getPriority));
-            thereIsWhite = spreadDrawnZones(red, green, blue, zones);
+            spreadDrawnZones(red, green, blue, zones);
 
             for (Zone zone : zones) {
                 System.out.println("Zone " + zone.getTag() + "\nZona minima Y: " + zone.getBegY() + " Zona minima X: " + zone.getBegX() + "\nZona maxima Y: " + zone.getEndY() + " Zona maxima X: " + zone.getEndX() + "\nTipo " + zone.getType());
@@ -128,13 +123,19 @@ public class RpgMapGeneratorController {
 
             zones.clear();
 
-            //TODO registerSpreadedZones(red, green, blue, zones);
+            spreadedToDrawn();
 
-            copyZoneToMat();
-            randomFill(red, green, blue, mostUsedGlobalColors);
+            registerDrawnZones(red, green, blue, zones);
 
-            //TODO SMOOTH EDGES
+            //TODO NEED A WAY TO FIX THIS ITERATION
+            //thereIsWhite = !finished(red,green,blue);
+            thereIsWhite = false;
+
+            System.out.println(iteration+"° iteração");
+            iteration++;
         }
+
+
 
         System.out.println(mostUsedGlobalColors);
     }
@@ -202,10 +203,8 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private boolean spreadDrawnZones(int[][] red, int[][] green, int[][] blue, ArrayList<Zone> zones) {
+    private void spreadDrawnZones(int[][] red, int[][] green, int[][] blue, ArrayList<Zone> zones) {
         int maxSpread = getZoneSpread();
-
-        boolean thereIsWhite = false;
 
         //TODO SPREAD THE ZONES
         for (int i = 0; i < red.length - 1; i++) {
@@ -217,64 +216,37 @@ public class RpgMapGeneratorController {
                     rgb[1] = green[i][j];
                     rgb[2] = blue [i][j];
 
-                    if (pixelIsBlank(rgb)){ thereIsWhite = true;}
-
                     Zone zone = getZoneByTag(drawn[i][j], zones);
 
                     String type = zone.getType();
 
                     switch (type) {
-                        case "Mountain" -> spreadMountain(i, j, red, green, blue, zone, maxSpread,0.9*getMutationChance());
-                        case "Grassland/Forest" -> spreadForest(i, j, red, green, blue, zone, maxSpread, 0.9*getMutationChance());
-                        case "Desert/Sand" -> spreadDesert(i, j, red, green, blue, zone, maxSpread, 0.9*getMutationChance());
-                        case "Water" -> spreadWater(i, j, red, green, blue, zone, maxSpread,0.9+(getMutationChance())*0.09*0.7);
-                        case "Roads" -> spreadRoads(i, j, red, green, blue, zone, maxSpread, 0.9*getMutationChance());
+                        case "Mountain" -> spreadMountain(i, j, red, green, blue, zone, maxSpread,0.9*getZoneSpread()/100);
+                        case "Grassland/Forest" -> spreadForest(i, j, red, green, blue, zone, maxSpread, 0.9*getZoneSpread()/100);
+                        case "Desert/Sand" -> spreadDesert(i, j, red, green, blue, zone, maxSpread, 0.9*getZoneSpread()/100);
+                        case "Water" -> spreadWater(i, j, red, green, blue, zone, maxSpread,(0.9*getZoneSpread())*0.09*0.7/100);
+                        case "Roads" -> spreadRoads(i, j, red, green, blue, zone, maxSpread, 0.9*getZoneSpread()/100);
                         case "Construction" -> spreadConstruction(red, green, blue, zone, maxSpread);
                         default -> System.out.println("Default case");
                     }
                 }
             }
         }
-
-
-
-        /*
-        for (int i = 0; i < zones.size(); i++) {
-            Zone zone = new Zone();
-            zone = zones.get(i);
-
-            String type = zone.getType();
-
-            System.out.println("Tipo de zona "+zone.getType());
-
-            switch (type) {
-                case "Mountain" -> spreadMountain(zone.getInitCoord()[0], zone.getInitCoord()[1], red, green, blue, zone, maxSpread);
-                case "Grassland/Forest" -> spreadForest(zone.getInitCoord()[0], zone.getInitCoord()[1], red, green, blue, zone, maxSpread);
-                case "Desert/Sand" -> spreadDesert(zone.getInitCoord()[0], zone.getInitCoord()[1],red, green, blue, zone, maxSpread);
-                case "Water" -> spreadWater(zone.getInitCoord()[0], zone.getInitCoord()[1], red, green, blue, zone, maxSpread);
-                case "Roads" -> spreadRoads(zone.getInitCoord()[0], zone.getInitCoord()[1], red, green, blue, zone, maxSpread);
-                case "Construction" -> spreadConstruction(red, green, blue, zone, maxSpread);
-                default -> System.out.println("Default case");
-            }
-        }
-         */
-
-        return thereIsWhite;
     }
 
-    private void spreadMountain(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingMutation) {
-        generalSpread(i,j,red,green,blue, zone, maxSpread, startingMutation);
+    private void spreadMountain(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread) {
+        generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, 16);
     }
 
-    private void spreadForest(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingMutation) {
-        generalSpread(i,j,red,green,blue, zone, maxSpread, startingMutation);
+    private void spreadForest(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread) {
+        generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, 16);
     }
 
-    private void spreadDesert(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingMutation) {
-        generalSpread(i,j,red,green,blue, zone, maxSpread, startingMutation);
+    private void spreadDesert(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread) {
+        generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, 16);
     }
 
-    private void spreadWater(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingMutation) {
+    private void spreadWater(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread) {
         //TODO
         if (maxSpread<=0) return;
 
@@ -285,7 +257,7 @@ public class RpgMapGeneratorController {
             return;
         }
 
-        double mutation = startingMutation;
+        double spread = startingSpread;
         double rand = Math.random();
 
         red[i][j] = zone.getRed();
@@ -293,15 +265,15 @@ public class RpgMapGeneratorController {
         blue[i][j] = zone.getBlue();
         spreaded[i][j] = zone.getTag();
 
-        if (rand > mutation) {
+        if (rand > spread) {
             maxSpread--;
-            mutation-=(mutation/16);
+            spread-=(spread/16);
         }
 
         for (int y = i-1; y <= i+1; y++) {
             for (int x = j-1; x <= j+1; x++) {
                 if (y >= 0 && y < red.length && x >= 0 && x < red[0].length) {
-                    spreadWater(y, x, red, green, blue, zone, maxSpread, mutation);
+                    spreadWater(y, x, red, green, blue, zone, maxSpread, spread);
                 }
             }
         }
@@ -317,13 +289,11 @@ public class RpgMapGeneratorController {
                 blue[i][j] = zone.getBlue();
             }
         }
-
-
     }
 
-    private void spreadRoads(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingMutation) {
+    private void spreadRoads(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread) {
         //TODO implement on the Zone class atributes to save the biggest and smallest continuous coloured vectors in x a y axis to get the lenght of the
-        generalSpread(i,j,red,green,blue, zone, maxSpread, startingMutation/2);
+        generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, 2);
         /*
         for (int i = zone.getBegY(); i < zone.getEndY(); i++) {
 
@@ -335,10 +305,9 @@ public class RpgMapGeneratorController {
             }
         }
          */
-
     }
 
-    private void generalSpread(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingMutation) {
+    private void generalSpread(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread, int reductionFactor) {
         if (maxSpread<=0) return;
 
         if (spreaded[i][j] != 0) return;    //Blocking going through other SPREAD zones
@@ -347,7 +316,7 @@ public class RpgMapGeneratorController {
             return;
         }
 
-        double mutation = startingMutation;
+        double spread = startingSpread;
         double rand = Math.random();
 
         red[i][j] = zone.getRed();
@@ -355,73 +324,34 @@ public class RpgMapGeneratorController {
         blue[i][j] = zone.getBlue();
         spreaded[i][j] = zone.getTag();
 
-        if (rand > mutation) {
+        if (rand > spread) {
             maxSpread--;
-            mutation-=(mutation/16);
+            spread-=(spread/reductionFactor);
         }
 
         for (int y = i-1; y <= i+1; y++) {
             for (int x = j-1; x <= j+1; x++) {
                 if (y >= 0 && y < red.length && x >= 0 && x < red[0].length) {
-                    generalSpread(y, x, red, green, blue, zone, maxSpread, mutation);
+                    generalSpread(y, x, red, green, blue, zone, maxSpread, spread, 2);
                 }
             }
         }
     }
 
+    private void randomFill(int[][] red, int[][] green, int[][] blue, ArrayList<Zone> zones, ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors) {
 
-    private void spreadZone(int i, int j, int[][] red, int[][] green, int[][] blue, int maxSpread, int redPx, int greenPx, int bluePx, int mark) {
-        maxSpread-=1;
-        //visited[i][j] = mark;
-
-        //System.out.println("Red "+red[i][j]+" Green "+green[i][j]+" Blue "+blue[i][j]+" ########### red " +redPx+ " green "+greenPx+"  blue "+ bluePx);
-        red[i][j] = redPx;
-        green[i][j] = greenPx;
-        blue[i][j] = bluePx;
-
-        for (int y = i-1; y <= i+1; y++) {
-            for (int x = j-1; x < j+1; x++) {
-                if (x>=0 && x<red[0].length && y>=0 && y<red.length ){
-                    if (!(y==i && x==j)) {
-                        if (notVisited(y, x, drawn)) {
-                            if (notVisited(x,y, drawn) && maxSpread>0) {
-                                spreadZone(i, j, red, green, blue, maxSpread, redPx, greenPx, bluePx, mark);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void finalSpreading(int[][] red, int[][] green, int[][] blue, ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors) {
-        for (int i = 0; i < red.length - 1; i++) {
-            for (int j = 0; j < red[0].length - 1; j++) {
-
-                int [] rgb = new int [3];
-                rgb = getValuesRGB(i, j, red,green,blue);
-
-                if (pixelIsBlank(rgb)){
-                    //If blank it MUST change its color, so mutationChance chance set to 1
-                    changePixel(red, green, blue, i, j, mostUsedGlobalColors, getSurroundingWeight(), 1.0);
-                }else {
-                    changePixel(red, green, blue, i, j, mostUsedGlobalColors, getSurroundingWeight(), getMutationChance());
-                }
-            }
-        }
-    }
-
-    private void randomFill(int[][] red, int[][] green, int[][] blue, ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors) {
-
-        // Vector wich will be used to random select pixels on the scrren to be filled
+        // Vector which will be used to random select pixels on the scrren to be filled
         int pixelCount = (red.length * red[0].length);
+
         int[] randomPick = new int[pixelCount];
         for (int i = 0; i < pixelCount; i++) {
             randomPick[i] = i;
         }
         shuffleVector(randomPick);
 
-        for (int i = 0; i < pixelCount; i++) {
+        int randomDotAmount = (int) (10*getMutationChance());
+        for (int i = 0; i < randomDotAmount; i++) {
+            // THIS ONE IS OK System.out.println("X equivale a:"+x+"\nY equivale a:"+y);
             int x = randomPick[i] % red.length;
             int y = randomPick[i] / red.length;
 
@@ -430,8 +360,8 @@ public class RpgMapGeneratorController {
 
             if (pixelIsBlank(rgb)) {
                 //If blank it MUST change its color, so mutationChance chance set to 1
-                changePixel(red, green, blue, x, y, mostUsedGlobalColors, getSurroundingWeight(), 1.0);
-            } /* else {
+                singlePixelChange(red, green, blue, x, y, mostUsedGlobalColors, getSurroundingWeight(), 1.0);
+            } /*else {
                 changePixel(red, green, blue, x, y, mostUsedGlobalColors, getSurroundingWeight(), getMutationChance());
             }*/
 
@@ -474,7 +404,7 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private void changePixel(int[][] red, int[][] green, int[][] blue, int i, int j, ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors, double surrondWeight, double mutationChance) {
+    private void singlePixelChange(int[][] red, int[][] green, int[][] blue, int i, int j, ArrayList<Map.Entry<String, Integer>> mostUsedGlobalColors, double surrondWeight, double mutationChance) {
         if ((Math.random() > mutationChance)) {
             return;
         }
@@ -502,6 +432,10 @@ public class RpgMapGeneratorController {
         red[i][j] = rgb[0];
         green[i][j] = rgb[1];
         blue[i][j] = rgb[2];
+
+        Zone zone = new Zone();
+        zone.setTypeByRGB(rgb);
+        spreaded[i][j] = zone.getTag();
     }
 
     //Will iterate through a number of colors then pick one
@@ -571,11 +505,16 @@ public class RpgMapGeneratorController {
             System.out.println("Canvas image is null. Cannot generate zones.");
         } else {
             Vector<int[][]> rgbMat = getMatrixRGB(canvas);
+
+            setMatRCopy(rgbMat.elementAt(0));
+            setMatGCopy(rgbMat.elementAt(1));
+            setMatBCopy(rgbMat.elementAt(2));
+
             setMatR(rgbMat.elementAt(0));
             setMatG(rgbMat.elementAt(1));
             setMatB(rgbMat.elementAt(2));
 
-            copyMatToZone();
+            originalMatToCopy();
 
             drawn = new int[matR.length][matR[0].length];
             spreaded = new int[matR.length][matR[0].length];
@@ -587,38 +526,29 @@ public class RpgMapGeneratorController {
                 }
             }
 
-            fillUpZones(zoneR, zoneG, zoneB);
+            fillUpZones(matRCopy, matGCopy, matBCopy);
         }
     }
 
-    private void copyMatToZone(){
-        int height = matR.length;
-        int width = matR[0].length;
-
-        zoneR = new int[height][width];
-        zoneG = new int[height][width];
-        zoneB = new int[height][width];
-
+    private void originalMatToCopy(){
         for (int i = 0; i < matR.length; i++) {
             for (int j = 0; j < matR[0].length; j++) {
-                zoneR[i][j] = matR[i][j];
-                zoneG[i][j] = matG[i][j];
-                zoneB[i][j] = matB[i][j];
+                matRCopy[i][j] = matR[i][j];
+                matGCopy[i][j] = matG[i][j];
+                matBCopy[i][j] = matB[i][j];
             }
         }
     }
 
-    private void copyZoneToMat() {
+    private void spreadedToDrawn() {
         for (int i = 0; i < matR.length; i++) {
             for (int j = 0; j < matR[0].length; j++) {
-                matR[i][j] = zoneR[i][j];
-                matG[i][j] = zoneG[i][j] ;
-                matB[i][j] = zoneB[i][j];
+                matR[i][j] = matRCopy[i][j];
+                matG[i][j] = matGCopy[i][j] ;
+                matB[i][j] = matBCopy[i][j];
             }
         }
     }
-
-
 
     private void shuffleVector(int[] ar){
         Random rnd = new Random();
@@ -631,16 +561,6 @@ public class RpgMapGeneratorController {
             ar[i] = a;
         }
     }
-
-    /*
-    private boolean allFilledAround(int i, int j, int[][] red,int[][] green, int[][] blue) {
-        for (int y = i-1; y < y+1; y++) {
-            for (int x = j-1; x < j+1; x++) {
-                if (y<0 || y> red.length )
-            }
-        }
-    }
-     */
 
     private boolean pixelIsBlank(int[] rgb) {
         return rgb[0] == 255 && rgb[1] == 255 && rgb[2] == 255;
@@ -662,6 +582,21 @@ public class RpgMapGeneratorController {
         rgb[2] = blue[i][j];
 
         return rgb;
+    }
+
+    private boolean finished (int[][] red, int[][] green, int[][] blue){
+        for (int i = 0; i < red.length; i++) {
+            for (int j = 0; j < red[0].length; j++) {
+                int[] rgb = new int[3];
+
+                rgb[0] = red[i][j];
+                rgb[1] = green[i][j];
+                rgb[2] = blue[i][j];
+
+                if (pixelIsBlank(rgb)) return false;
+            }
+        }
+        return true;
     }
 
     public static Zone getZoneByTag(int tag, ArrayList<Zone> zones) {

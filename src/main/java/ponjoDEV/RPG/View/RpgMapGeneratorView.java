@@ -9,7 +9,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.util.*;
 
 public class RpgMapGeneratorView extends JFrame {
     private final JDesktopPane theDesktop = new JDesktopPane();
@@ -189,7 +188,7 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 2: Zone Spread
         JLabel zoneSpreadLabel = new JLabel("Zone Spread");
-        JSlider zoneSpreadSlider = new JSlider(20, 100);
+        JSlider zoneSpreadSlider = new JSlider(1, 100);
         zoneSpreadSlider.setValue(20); // Default Zone Spread
         zoneSpreadSlider.addChangeListener(new ChangeListener() {
             @Override
@@ -275,7 +274,7 @@ public class RpgMapGeneratorView extends JFrame {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         rpgController.generateZones(getCanvasImage());
-                        generateImage(rpgController.getZoneR(),rpgController.getZoneG(),rpgController.getZoneB(),"Generated Zones");
+                        generateImage(rpgController.getMatRCopy(),rpgController.getMatGCopy(),rpgController.getMatBCopy(),"Generated Zones");
                     }
                 }
         );
