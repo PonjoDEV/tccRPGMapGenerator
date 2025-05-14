@@ -17,7 +17,7 @@ public class RpgMapGeneratorController {
 
     //deviation means how often the analysed pixel will differ from its surroundings
     //canvasMutation means the current pixel chance to change from its original value
-    double surroundingWeight, mutationChance, perlinNoise, propDensity;
+    double surroundingWeight, mutationChance, propDensity;
 
     int zoneSpread;
 
@@ -111,7 +111,8 @@ public class RpgMapGeneratorController {
 
         int iteration = 0;
 
-        while(thereIsWhite) {
+        // while(iteration <= this.getZoneSpread() || whitePxLeft(red,green,blue) {
+        while(iteration <= this.getZoneSpread()) {
 
             zones.sort(Comparator.comparingInt(Zone::getPriority));
             spreadDrawnZones(red, green, blue, zones);
@@ -121,14 +122,14 @@ public class RpgMapGeneratorController {
                 System.out.println("Y inicial: " + zone.getInitCoord()[0] + " X inicial " + zone.getInitCoord()[1]+"\n Zone Size :"+zone.getSize());
             }
 
-            zones.clear();
-
             spreadedToDrawn();
+
+            zones.clear();
 
             registerDrawnZones(red, green, blue, zones);
 
-            //TODO NEED A WAY TO FIX THIS ITERATION
-            //thereIsWhite = !finished(red,green,blue);
+            //TODO NEED A WAY TO FIX THIS ITERATION'
+            thereIsWhite = !finished(red,green,blue);
             thereIsWhite = false;
 
             System.out.println(iteration+"° iteração");
@@ -206,7 +207,6 @@ public class RpgMapGeneratorController {
     private void spreadDrawnZones(int[][] red, int[][] green, int[][] blue, ArrayList<Zone> zones) {
         int maxSpread = getZoneSpread();
 
-        //TODO SPREAD THE ZONES
         for (int i = 0; i < red.length - 1; i++) {
             for (int j = 0; j < red[0].length - 1; j++) {
                 if (!notVisited(i, j, drawn) && notVisited(i,j,spreaded)) {
@@ -247,12 +247,11 @@ public class RpgMapGeneratorController {
     }
 
     private void spreadWater(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread) {
-        //TODO
         if (maxSpread<=0) return;
 
         if (spreaded[i][j] != 0) return; //Blocking going through SPREADED other zones
 
-        //TODO What is the behavior of water when encounters another object? It can either be blocked, or by time goes on pierce through it
+        //TODO What is the behavior of water when encounters another object? It can either be blocked, or by time goes on and pierce through it
         if (drawn[i][j] != zone.getTag() && drawn[i][j] != 0){ //Blocking going through DRAWN other zones
             return;
         }
@@ -282,6 +281,7 @@ public class RpgMapGeneratorController {
     private void spreadConstruction(int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread) {
         //TODO add a chance for other construction shapes
 
+        //Square shaped constructions
         for (int i = zone.getBegY(); i < zone.getEndY(); i++) {
             for (int j = zone.getBegX(); j < zone.getEndX(); j++) {
                 red[i][j] = zone.getRed();
@@ -292,8 +292,9 @@ public class RpgMapGeneratorController {
     }
 
     private void spreadRoads(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread) {
-        //TODO implement on the Zone class atributes to save the biggest and smallest continuous coloured vectors in x a y axis to get the lenght of the
+        //TODO implement on the Zone class attributes to save the biggest and smallest continuous coloured vectors in x a y axis to get the lenght of the
         generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, 2);
+
         /*
         for (int i = zone.getBegY(); i < zone.getEndY(); i++) {
 
@@ -361,9 +362,9 @@ public class RpgMapGeneratorController {
             if (pixelIsBlank(rgb)) {
                 //If blank it MUST change its color, so mutationChance chance set to 1
                 singlePixelChange(red, green, blue, x, y, mostUsedGlobalColors, getSurroundingWeight(), 1.0);
-            } /*else {
-                changePixel(red, green, blue, x, y, mostUsedGlobalColors, getSurroundingWeight(), getMutationChance());
-            }*/
+            } else {
+                //singlePixelChange(red, green, blue, x, y, mostUsedGlobalColors, getSurroundingWeight(), getMutationChance());
+            }
 
         }
     }
