@@ -188,8 +188,8 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 2: Zone Spread
         JLabel zoneSpreadLabel = new JLabel("Zone Spread");
-        JSlider zoneSpreadSlider = new JSlider(1, 100);
-        zoneSpreadSlider.setValue(20); // Default Zone Spread
+        JSlider zoneSpreadSlider = new JSlider(60, 100);
+        zoneSpreadSlider.setValue(70); // Default Zone Spread
         zoneSpreadSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
