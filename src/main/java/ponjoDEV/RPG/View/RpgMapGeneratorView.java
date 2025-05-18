@@ -21,7 +21,7 @@ public class RpgMapGeneratorView extends JFrame {
     private final JTextField heightField = new JTextField("720", 5);
     private final JComboBox<String> colorMenu = new JComboBox<>(new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"});
     private String selectedColor = "Grassland/Forest";
-    private int lineThickness;
+    private int lineThickness, test;
 
 
     public BufferedImage getCanvasImage() {
@@ -44,6 +44,10 @@ public class RpgMapGeneratorView extends JFrame {
     public int getLineThickness() { return lineThickness; }
 
     public void setLineThickness(int lineThickness) { this.lineThickness = lineThickness; }
+
+    public int getTest() { return test; }
+
+    public void setTest(int test) { this.test = test; }
 
     class MyJPanel extends JPanel{
         private ImageIcon imageIcon;
@@ -172,6 +176,22 @@ public class RpgMapGeneratorView extends JFrame {
         JPanel sliderPanel = new JPanel();
         sliderPanel.setLayout(new GridLayout(5, 2));
 
+        /*
+        // Slider 0: Testing Slider
+        JLabel testLabel = new JLabel("Testing parameter");
+        JSlider testSlider = new JSlider(0, 30);
+        testSlider.setValue(2);
+        testSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                test = testSlider.getValue();
+                System.out.println("Test parameter: " + getTest() );
+            }
+        });
+        sliderPanel.add(testLabel);
+        sliderPanel.add(testSlider);
+         */
+
         // Slider 1: Line Thickness
         JLabel thicknessLabel = new JLabel("Line Thickness");
         JSlider thicknessSlider = new JSlider(10, 100);
@@ -188,8 +208,8 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 2: Zone Spread
         JLabel zoneSpreadLabel = new JLabel("Zone Spread");
-        JSlider zoneSpreadSlider = new JSlider(60, 100);
-        zoneSpreadSlider.setValue(70); // Default Zone Spread
+        JSlider zoneSpreadSlider = new JSlider(0, 10);
+        zoneSpreadSlider.setValue(2); // Default Zone Spread
         zoneSpreadSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -202,8 +222,8 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 3: Surrouding Weight
         JLabel surroundWeight = new JLabel("Surrounding weight");
-        JSlider surroundWeightSlider = new JSlider(90, 100);
-        surroundWeightSlider.setValue(95);
+        JSlider surroundWeightSlider = new JSlider(85, 100);
+        surroundWeightSlider.setValue(90);
         surroundWeightSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -244,6 +264,7 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(propDensityLabel);
         sliderPanel.add(propDensitySlider);
 
+        //setTest(testSlider.getValue());
         rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/100.0);
         rpgController.setMutationChance(mutationChanceSlider.getValue()/100.0);
         rpgController.setPropDensity(propDensitySlider.getValue()/100.0);

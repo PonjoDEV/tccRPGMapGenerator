@@ -55,9 +55,7 @@ public class RpgMapGeneratorController {
         return matRCopy;
     }
 
-    public void setMatRCopy(int[][] matRCopy) {
-        this.matRCopy = matRCopy;
-    }
+    public void setMatRCopy(int[][] matRCopy) { this.matRCopy = matRCopy; }
 
     public int[][] getMatGCopy() { return matGCopy; }
 
@@ -110,53 +108,74 @@ public class RpgMapGeneratorController {
 
         int iteration = 0;
 
-        // while(iteration <= this.getZoneSpread() || whitePxLeft(red,green,blue) {
-        while(iteration <= this.getZoneSpread()) {
+        //while(iteration <= this.getZoneSpread() || whitePxLeft(red,green,blue)) {
+        while(iteration <= this.getZoneSpread()*5) {
+            // First, copy the current state of the original matrices to the working copies
+            originalMatToCopy();
 
             zones.sort(Comparator.comparingInt(Zone::getPriority));
-            spreadDrawnZones(red, green, blue, zones ,getZoneSpread(), getMutationChance());
+            spreadDrawnZones(matRCopy, matGCopy, matBCopy, zones, getZoneSpread(), getMutationChance());
 
             for (Zone zone : zones) {
                 System.out.println("Zone " + zone.getTag() + "\nZona minima Y: " + zone.getBegY() + " Zona minima X: " + zone.getBegX() + "\nZona maxima Y: " + zone.getEndY() + " Zona maxima X: " + zone.getEndX() + "\nTipo " + zone.getType());
                 System.out.println("Y inicial: " + zone.getInitCoord()[0] + " X inicial " + zone.getInitCoord()[1]+"\n Zone Size :"+zone.getSize());
             }
 
+            // After spreading, copy the results from the working copies back to the original matrices
+            // This ensures that each iteration builds upon the previous one
+            copyMattoOriginalMat();
 
-            //TODO THIS PART AINT DOING WHAT IS SUPPOSED TO, ITS JUST REPEATING THE INITIAL SPREAD,
-            // IT SHOULD DO THE FIRST SPREAD, COPY THE RESULT TO THE ORIGINAL MATRIX, AND THEN REDO IT USING THE RESULT AS BASE PROBABLY IS A PROBLEM ON HOW
-            // THE REGISTER PROCESS IS BEING MADE AND READ FOR THE SPREAD TO OCCUR
-                copyMattoOriginalMat();
-                resetMatrix(drawn);
+            // Reset the tracking matrices for the next iteration
+            resetMatrix(drawn);
+            resetMatrix(spreaded);
 
-                zones.clear();
-
-                registerDrawnZones(red, green, blue, zones);
-
+            // Clear and re-register zones based on the updated matrices
+            zones.clear();
+            registerDrawnZones(red, green, blue, zones);
 
             System.out.println(iteration+"° iteração");
             iteration++;
+
+            if (!whitePxLeft(red,green,blue)){
+                break;
+            }
+
         }
 
-
-
         System.out.println(mostUsedGlobalColors);
+    }
+
+    private boolean whitePxLeft(int[][] red, int[][] green, int[][] blue) {
+
+        for (int i = 0; i < red.length; i++) {
+            for (int j = 0; j < red[0].length; j++) {
+                int [] rgb = new int[3];
+                rgb[0]=red[i][j];
+                rgb[1]=green[i][j];
+                rgb[2]=blue[i][j];
+                if (pixelIsBlank(rgb)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void resetMatrix(int[][] matrix) {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[0].length; j++) {
-                 matrix[i][j] = 0;
+                matrix[i][j] = 0;
             }
         }
     }
 
     private void replicate(int[][] origin, int[][] destination) {
         if (origin.length != destination.length || origin[0].length != destination[0].length )
-        for (int i = 0; i < origin.length; i++) {
-            for (int j = 0; j < origin[0].length; j++) {
-                destination[i][j] = origin[i][j];
+            for (int i = 0; i < origin.length; i++) {
+                for (int j = 0; j < origin[0].length; j++) {
+                    destination[i][j] = origin[i][j];
+                }
             }
-        }
     }
 
     private void registerDrawnZones(int[][] red, int[][] green, int[][] blue, ArrayList<Zone> zones) {
@@ -223,26 +242,29 @@ public class RpgMapGeneratorController {
     }
 
     private void spreadDrawnZones(int[][] red, int[][] green, int[][] blue, ArrayList<Zone> zones, double startingSpread, double mutationChance) {
-        int maxSpread = (int) startingSpread;
-        startingSpread*=0.009;
+        int spreadLimit = (int) startingSpread;
+        startingSpread*=0.09;
 
         for (int i = 0; i < red.length - 1; i++) {
             for (int j = 0; j < red[0].length - 1; j++) {
                 if (!notVisited(i, j, drawn) && notVisited(i,j,spreaded)) {
-
                     Zone zone = getZoneByTag(drawn[i][j], zones);
 
-                    //TODO FIND WHY THSIS IS SOMETIMES RETURNING NULL
+                    // Fix for the null return issue
+                    if (zone == null) {
+                        continue; // Skip this iteration if zone is null
+                    }
+
                     String type = zone.getType();
 
                     switch (type) {
-                        case "Mountain" -> spreadMountain(i, j, red, green, blue, zone, maxSpread, (double) startingSpread, mutationChance);
-                        case "Grassland/Forest" -> spreadForest(i, j, red, green, blue, zone, maxSpread, (double) startingSpread, mutationChance);
-                        case "Desert/Sand" -> spreadDesert(i, j, red, green, blue, zone, maxSpread, (double) startingSpread, mutationChance);
-                        case "Water" -> spreadWater(i, j, red, green, blue, zone, maxSpread,(double) startingSpread*0.09*0.7, mutationChance);
-                        case "Roads" -> spreadRoads(i, j, red, green, blue, zone, maxSpread, (double) startingSpread, mutationChance);
-                        case "Construction" -> spreadConstruction(red, green, blue, zone, maxSpread, mutationChance);
-                        default -> System.out.println("Default case");
+                        case "Mountain" -> spreadMountain(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                        case "Grassland/Forest" -> spreadForest(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                        case "Desert/Sand" -> spreadDesert(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                        case "Water" -> spreadWater(i, j, red, green, blue, zone, spreadLimit,(double) startingSpread*0.09*0.7, mutationChance);
+                        case "Roads" -> spreadRoads(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                        case "Construction" -> spreadConstruction(red, green, blue, zone, spreadLimit, mutationChance);
+                        default -> System.out.println("Invalid Zone Type");
                     }
                 }
             }
@@ -254,31 +276,33 @@ public class RpgMapGeneratorController {
     // MATHEMATICALLY IT SHOULD HAVE A TENDENCY TO SHRINK UNTIL ITS OVER, SO THE FORMULAS SHOULD RESULT IN 0, THAT BEING SAID:
     // if (rand > spread) { SPREAD DECREASE RATE SHOULD BE BIGGER THAN ANY GROwTH MUTATIONS INSIDE OR OUTSIDE OF THE CONDITION
 
-    private void spreadMountain(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread, double mutationChance) {
-        generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, mutationChance, 16);
+    private void spreadMountain(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int spreadLimit, double spreadRate, double mutationChance) {
+        generalSpread(i,j,red,green,blue, zone, spreadLimit, spreadRate, mutationChance, 16);
     }
 
-    private void spreadForest(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread, double mutationChance) {
-        generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, mutationChance, 16);
+    private void spreadForest(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int spreadLimit, double spreadRate, double mutationChance) {
+        generalSpread(i,j,red,green,blue, zone, spreadLimit, spreadRate, mutationChance, 16);
     }
 
-    private void spreadDesert(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread, double mutationChance) {
-        generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, mutationChance, 16);
+    private void spreadDesert(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int spreadLimit, double spreadRate, double mutationChance) {
+        generalSpread(i,j,red,green,blue, zone, spreadLimit, spreadRate, mutationChance, 16);
     }
 
-    private void spreadWater(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread, double mutationChance) {
-        //maxSpread controls how many iterations, while startingSpread controls
-        if (maxSpread<=0) return;
+    private void spreadWater(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int spreadLimit, double spreadRate, double mutationChance) {
+        //spreadLimit controls how many iterations, while spreadRate controls the chance to reduce the spread rate
+        if (spreadLimit<=0) return;
 
         if (spreaded[i][j] != 0) return; //Blocking going through SPREADED other zones
 
-        //TODO What is the behavior of water when encounters another object? It can either be blocked, or by time goes on and pierce through it
-        //Water mutation should start at least 70, so if mutation is lower than 0.8, it must be set to it
-        if (drawn[i][j] != zone.getTag() && drawn[i][j] != 0){ //Blocking going through DRAWN other zones
+        //TODO What is the behavior of water when encounters another object? It can either be blocked, or by time goes on and pierce through it,
+        // If its not a construction it should be able to continue going through
+        if (drawn[i][j] != zone.getTag() && drawn[i][j] != 0){
+            //Blocking going through other road or construction zones
+            //if (it encounters a road or construction){ waterSpread stops}
             return;
         }
 
-        double spread = startingSpread;
+        double spread = spreadRate;
         double rand = Math.random();
 
         red[i][j] = zone.getRed();
@@ -288,16 +312,17 @@ public class RpgMapGeneratorController {
 
         if (rand > spread) {
             //TODO tweak with this spread condition for a bit
-            if ((Math.random() < 0.8+ (mutationChance*0.2)-0.61 ) && maxSpread == 1) maxSpread++;
+            //Water mutation should start at least 80, so if mutation is lower than 0.8, it must be set to it
+            if ((Math.random() < 0.8+ (mutationChance*0.2)-0.61 ) && spreadLimit == 1) spreadLimit++;
 
-            maxSpread--;
+            spreadLimit--;
             spread-=(spread/16);
         }
 
         for (int y = i-1; y <= i+1; y++) {
             for (int x = j-1; x <= j+1; x++) {
                 if (y >= 0 && y < red.length && x >= 0 && x < red[0].length) {
-                    spreadWater(y, x, red, green, blue, zone, maxSpread, spread, mutationChance);
+                    spreadWater(y, x, red, green, blue, zone, spreadLimit, spread, mutationChance);
                 }
             }
         }
@@ -316,24 +341,41 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private void spreadRoads(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread, double mutationChance) {
-        //TODO implement on the Zone class attributes to save the biggest and smallest continuous coloured vectors in x a y axis to get the lenght of the
-        generalSpread(i,j,red,green,blue, zone, maxSpread, startingSpread, mutationChance, 2);
+    private void spreadRoads(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int spreadLimit, double startingSpread, double mutationChance) {
 
-        /*
-        for (int i = zone.getBegY(); i < zone.getEndY(); i++) {
+        if (spreadLimit<=0) return;
 
-            for (int j = zone.getBegX(); j < zone.getEndX(); j++) {
+        if (spreaded[i][j] != 0) return;    //Blocking going through other SPREAD zones
 
-                red[i][j] = zone.getRed();
-                green[i][j] = zone.getGreen();
-                blue[i][j] = zone.getBlue();
+        if (drawn[i][j] != zone.getTag() && drawn[i][j] != 0){ //Blocking going through other DRAWN zones
+            return;
+        }
+
+        double spread = startingSpread;
+        double rand = Math.random();
+
+        red[i][j] = zone.getRed();
+        green[i][j] = zone.getGreen();
+        blue[i][j] = zone.getBlue();
+        spreaded[i][j] = zone.getTag();
+
+        //Way to reduce gradually the spreading limit
+        if (rand > spread) {
+
+            spreadLimit--;
+            spread-=(spread/4);
+        }
+
+        for (int y = i-1; y <= i+1; y++) {
+            for (int x = j-1; x <= j+1; x++) {
+                if (y >= 0 && y < red.length && x >= 0 && x < red[0].length) {
+                    spreadRoads(y, x, red, green, blue, zone, spreadLimit, spread, mutationChance);
+                }
             }
         }
-         */
     }
 
-    private void generalSpread(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double startingSpread, double mutationChance, int reductionFactor) {
+    private void generalSpread(int i, int j, int[][] red, int[][] green, int[][] blue, Zone zone, int maxSpread, double spreadRate, double mutationChance, int reductionFactor) {
         //TODO SPREAD MORE FOR EACH TIME IT HAPPENS
         if (maxSpread<=0) return;
 
@@ -343,7 +385,7 @@ public class RpgMapGeneratorController {
             return;
         }
 
-        double spread = startingSpread;
+        double spread = spreadRate;
         double rand = Math.random();
 
         red[i][j] = zone.getRed();
