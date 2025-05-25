@@ -276,7 +276,7 @@ public class RpgMapGeneratorView extends JFrame {
 
     private void setupButtons() {
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(4, 1));
+        buttonPanel.setLayout(new GridLayout(5, 1));
 
         //Creating and adding first button to the button panel
         JButton createNewCanvas = new JButton("New Canvas");
@@ -312,7 +312,17 @@ public class RpgMapGeneratorView extends JFrame {
         buttonPanel.add(saveCurrentZonesButton);
 
         //Creating and adding fourth button to the button panel
-        JButton createMapButton = new JButton("Create Map ");
+        JButton openZoneMapButton = new JButton("Open Zone Map");
+        openZoneMapButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //TODO Open a existing saved zone map to use the create map method
+            }
+        });
+        buttonPanel.add(openZoneMapButton);
+
+        //Creating and adding fifth button to the button panel
+        JButton createMapButton = new JButton("Create Map");
         createMapButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
