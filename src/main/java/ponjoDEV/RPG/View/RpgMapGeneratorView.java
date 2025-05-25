@@ -19,7 +19,7 @@ public class RpgMapGeneratorView extends JFrame {
     // Array of possible kinds of terrain
     private final JTextField widthField = new JTextField("1200", 5);
     private final JTextField heightField = new JTextField("720", 5);
-    private final JComboBox<String> colorMenu = new JComboBox<>(new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"});
+    private final String[] colorMenu = new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"};
     private String selectedColor = "Grassland/Forest";
     private int lineThickness, test;
 
@@ -84,16 +84,77 @@ public class RpgMapGeneratorView extends JFrame {
         setupButtons();
         setupCanvas();
         setupCanvasResize();
+        setupColorSelection();
         createNewCanvas();
 
 
         add(theDesktop, BorderLayout.CENTER);
 
-        colorMenu.addActionListener(e -> selectedColor = (String) colorMenu.getSelectedItem());
 
         setSize(1200, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
+    }
+
+    private void setupColorSelection() {
+        JPanel colorButtonPanel = new JPanel();
+        colorButtonPanel.setLayout(new GridLayout(6, 1));
+
+        JButton grassland = new JButton("Grassland/Forest");
+        grassland.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectedColor = "Grassland/Forest";
+            }
+        });
+        colorButtonPanel.add(grassland);
+
+        JButton water = new JButton("Water");
+        water.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectedColor = "Water";
+            }
+        });
+        colorButtonPanel.add(water);
+
+        JButton mountain = new JButton("Mountain");
+        mountain.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectedColor = "Mountain";
+            }
+        });
+        colorButtonPanel.add(mountain);
+
+        JButton desertSand = new JButton("Desert/Sand");
+        desertSand.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectedColor = "Desert/Sand";
+            }
+        });
+        colorButtonPanel.add(desertSand);
+
+        JButton construction = new JButton("Construction");
+        construction.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectedColor = "Construction";
+            }
+        });
+        colorButtonPanel.add(construction);
+
+        JButton roads = new JButton("Roads");
+        roads.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectedColor = "Roads";
+            }
+        });
+        colorButtonPanel.add(roads);
+
+        add(colorButtonPanel, BorderLayout.WEST);
     }
 
     private void setupCanvasResize() {
@@ -102,12 +163,11 @@ public class RpgMapGeneratorView extends JFrame {
         inputPanel.add(widthField);
         inputPanel.add(new JLabel("Height:"));
         inputPanel.add(heightField);
-        inputPanel.add(new JLabel("Color:"));
-        inputPanel.add(colorMenu);
         add(inputPanel, BorderLayout.NORTH);
     }
 
     private void setupMenu() {
+        /*
         JMenuBar bar = new JMenuBar();
 
         JMenu addMenu = new JMenu("Open");
@@ -153,7 +213,7 @@ public class RpgMapGeneratorView extends JFrame {
 
                     }
                 }
-        );
+        );*/
     }
 
     private void setupCanvas() {
@@ -316,8 +376,21 @@ public class RpgMapGeneratorView extends JFrame {
         openZoneMapButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO Open a existing saved zone map to use the create map method
-            }
+                        int result = fileChooser.showOpenDialog(null);
+                        if (result == JFileChooser.CANCEL_OPTION) {
+                            return;
+                        }
+                        path = fileChooser.getSelectedFile().getAbsolutePath();
+
+                        JInternalFrame frame = new JInternalFrame("Source Image", true, true, true, true);
+                        Container container = frame.getContentPane();
+                        MyJPanel panel = new MyJPanel();
+                        container.add(panel, BorderLayout.CENTER);
+
+                        frame.pack();
+                        theDesktop.add(frame);
+                        frame.setVisible(true);
+                    }
         });
         buttonPanel.add(openZoneMapButton);
 

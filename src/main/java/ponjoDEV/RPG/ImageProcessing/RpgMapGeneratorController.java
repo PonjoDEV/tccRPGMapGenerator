@@ -139,7 +139,6 @@ public class RpgMapGeneratorController {
             if (!whitePxLeft(red,green,blue)){
                 break;
             }
-
         }
 
         System.out.println(mostUsedGlobalColors);
@@ -169,7 +168,7 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private void replicate(int[][] origin, int[][] destination) {
+    private void replicateInto(int[][] origin, int[][] destination) {
         if (origin.length != destination.length || origin[0].length != destination[0].length )
             for (int i = 0; i < origin.length; i++) {
                 for (int j = 0; j < origin[0].length; j++) {
