@@ -16,7 +16,9 @@ public class RpgMapGeneratorView extends JFrame {
     private String path;
     private RpgMapGeneratorController rpgController = new RpgMapGeneratorController(this);
 
-    // Array of possible kinds of terrain
+    // Array of possible kinds of Textures
+    private JComboBox<String> texturesMenu = new JComboBox<>(new String[]{"folder1", "folder2", "etc"});
+
     private final JTextField widthField = new JTextField("1200", 5);
     private final JTextField heightField = new JTextField("720", 5);
     private final String[] colorMenu = new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"};
@@ -83,7 +85,7 @@ public class RpgMapGeneratorView extends JFrame {
         setupSliders();
         setupButtons();
         setupCanvas();
-        setupCanvasResize();
+        setupCanvasResizeAndTexture();
         setupColorSelection();
         createNewCanvas();
 
@@ -157,12 +159,15 @@ public class RpgMapGeneratorView extends JFrame {
         add(colorButtonPanel, BorderLayout.WEST);
     }
 
-    private void setupCanvasResize() {
+    private void setupCanvasResizeAndTexture() {
         JPanel inputPanel = new JPanel();
         inputPanel.add(new JLabel("Width:"));
         inputPanel.add(widthField);
         inputPanel.add(new JLabel("Height:"));
         inputPanel.add(heightField);
+
+        inputPanel.add(texturesMenu);
+
         add(inputPanel, BorderLayout.NORTH);
     }
 

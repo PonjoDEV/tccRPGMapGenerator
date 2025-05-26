@@ -8,11 +8,8 @@ import java.util.*;
 
 public class RpgMapGeneratorController {
     private RpgMapGeneratorView view;
-    public RpgMapGeneratorController(RpgMapGeneratorView view){
-        this.view = view;
-    }
+    public RpgMapGeneratorController(RpgMapGeneratorView view){ this.view = view; }
 
-    //Mat being the original image, and zones being the new generated image with the zones of each kind of terrain/assets
     private int[][] matR, matG, matB, matRCopy, matGCopy, matBCopy, drawn, spreaded;
 
     //deviation means how often the analysed pixel will differ from its surroundings
@@ -20,6 +17,8 @@ public class RpgMapGeneratorController {
     double surroundingWeight, mutationChance, propDensity;
 
     int zoneSpread;
+
+    String path = "C:\\Program Files\\RPGMapTextures";
 
     public int getZoneSpread() {
         return zoneSpread;
