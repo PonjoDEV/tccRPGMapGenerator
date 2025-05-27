@@ -18,8 +18,6 @@ public class RpgMapGeneratorController {
 
     int zoneSpread;
 
-    String path = "C:\\Program Files\\RPGMapTextures";
-
     public int getZoneSpread() {
         return zoneSpread;
     }

@@ -1,6 +1,7 @@
 package ponjoDEV.RPG.View;
 
 import ponjoDEV.RPG.ImageProcessing.RpgMapGeneratorController;
+import ponjoDEV.RPG.ImageProcessing.TextureController;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -14,10 +15,9 @@ public class RpgMapGeneratorView extends JFrame {
     private final JDesktopPane theDesktop = new JDesktopPane();
     private final JFileChooser fileChooser = new JFileChooser();
     private String path;
-    private RpgMapGeneratorController rpgController = new RpgMapGeneratorController(this);
 
-    // Array of possible kinds of Textures
-    private JComboBox<String> texturesMenu = new JComboBox<>(new String[]{"folder1", "folder2", "etc"});
+    private RpgMapGeneratorController rpgController = new RpgMapGeneratorController(this);
+    private TextureController textureController = new TextureController();
 
     private final JTextField widthField = new JTextField("1200", 5);
     private final JTextField heightField = new JTextField("720", 5);
@@ -166,7 +166,20 @@ public class RpgMapGeneratorView extends JFrame {
         inputPanel.add(new JLabel("Height:"));
         inputPanel.add(heightField);
 
+        JButton refresh = new JButton("Refresh");
+                refresh.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        //TODO Refresh the existing texture folder list
+                    }
+                });
+
+        // Array of possible kinds of Textures
+        JComboBox<String> texturesMenu = new JComboBox<>(textureController.getTextureFolders());
+
         inputPanel.add(texturesMenu);
+
+        inputPanel.add(refresh);
 
         add(inputPanel, BorderLayout.NORTH);
     }
