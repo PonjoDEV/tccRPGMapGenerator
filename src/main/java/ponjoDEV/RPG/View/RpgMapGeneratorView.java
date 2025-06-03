@@ -166,16 +166,21 @@ public class RpgMapGeneratorView extends JFrame {
         inputPanel.add(new JLabel("Height:"));
         inputPanel.add(heightField);
 
+        // Array of possible kinds of Textures
+        JComboBox<String> texturesMenu = new JComboBox<>(textureController.getTextureFolders());
+
         JButton refresh = new JButton("Refresh");
                 refresh.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        //TODO Refresh the existing texture folder list
+                        String[] textureFolders = textureController.refreshFolders(textureController.getPath());
+                        texturesMenu.removeAllItems();
+                        for (int i = 0; i < textureFolders.length; i++) {
+                            texturesMenu.addItem(textureFolders[i]);
+                        }
                     }
                 });
 
-        // Array of possible kinds of Textures
-        JComboBox<String> texturesMenu = new JComboBox<>(textureController.getTextureFolders());
 
         inputPanel.add(texturesMenu);
 

@@ -20,4 +20,11 @@ public class TextureController {
     public void setTextureFolders(String[] textureFolders) {
         this.textureFolders = textureFolders;
     }
+
+    public String[] refreshFolders(String path) {
+        //TODO NAVIGATE TO THE PATH DESTINATION AND GET THE AVAILABLE FOLDERS, THEN SAVE ONTO texturePacks
+        String [] texturePacks = new String[]{path,"Harambe","Please","Forgive","Us"};
+
+        return texturePacks;
+    }
 }
