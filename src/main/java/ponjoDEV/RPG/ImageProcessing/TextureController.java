@@ -2,7 +2,7 @@ package ponjoDEV.RPG.ImageProcessing;
 
 
 public class TextureController {
-    private String path = "C:\\Program Files\\RPGMapTextures";
+    private String path = "C:\\Program Files\\RPGMapGenerator\\RPGMapTextures";
     private String[] textureFolders = new String[]{"sada","pingas"};
 
     public String getPath() {

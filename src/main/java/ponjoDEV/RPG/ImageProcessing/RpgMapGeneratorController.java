@@ -11,6 +11,7 @@ public class RpgMapGeneratorController {
     public RpgMapGeneratorController(RpgMapGeneratorView view){ this.view = view; }
 
     private int[][] matR, matG, matB, matRCopy, matGCopy, matBCopy, drawn, spreaded;
+    private String path = "C:\\Program Files\\RPGMapGenerator\\RPGMapZones";
 
     //deviation means how often the analysed pixel will differ from its surroundings
     //canvasMutation means the current pixel chance to change from its original value
@@ -113,10 +114,11 @@ public class RpgMapGeneratorController {
             zones.sort(Comparator.comparingInt(Zone::getPriority));
             spreadDrawnZones(matRCopy, matGCopy, matBCopy, zones, getZoneSpread(), getMutationChance());
 
-            for (Zone zone : zones) {
+            /*for (Zone zone : zones) {
                 System.out.println("Zone " + zone.getTag() + "\nZona minima Y: " + zone.getBegY() + " Zona minima X: " + zone.getBegX() + "\nZona maxima Y: " + zone.getEndY() + " Zona maxima X: " + zone.getEndX() + "\nTipo " + zone.getType());
                 System.out.println("Y inicial: " + zone.getInitCoord()[0] + " X inicial " + zone.getInitCoord()[1]+"\n Zone Size :"+zone.getSize());
             }
+             */
 
             // After spreading, copy the results from the working copies back to the original matrices
             // This ensures that each iteration builds upon the previous one
@@ -138,7 +140,18 @@ public class RpgMapGeneratorController {
             }
         }
 
-        System.out.println(mostUsedGlobalColors);
+
+        registerDrawnZones(red, green, blue, zones);
+
+
+        int a =0;
+        for (Zone zone : zones){
+            a++;
+            System.out.println(a+"°");
+            System.out.println(zone.getType());
+
+        }
+
     }
 
     private boolean whitePxLeft(int[][] red, int[][] green, int[][] blue) {
@@ -592,7 +605,7 @@ public class RpgMapGeneratorController {
                 }
             }
 
-            fillUpZones(matR, matG, matB);
+            fillUpZones(matRCopy, matGCopy, matBCopy);
         }
     }
 

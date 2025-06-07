@@ -402,7 +402,10 @@ public class RpgMapGeneratorView extends JFrame {
                         int result = fileChooser.showOpenDialog(null);
                         if (result == JFileChooser.CANCEL_OPTION) {
                             return;
+                        }else{
+                            createNewCanvas();
                         }
+
                         path = fileChooser.getSelectedFile().getAbsolutePath();
 
                         JInternalFrame frame = new JInternalFrame("Source Image", true, true, true, true);
@@ -445,9 +448,7 @@ public class RpgMapGeneratorView extends JFrame {
         raster.setPixels(0, 0, matrix1[0].length, matrix1.length, pixels);
 
         // Close the previous "Generated Zones" frame if it exists
-        if (lastGeneratedZonesFrame != null) {
-            lastGeneratedZonesFrame.dispose();
-        }
+        if (lastGeneratedZonesFrame != null) { lastGeneratedZonesFrame.dispose(); }
 
         //Opens Image Window
         JInternalFrame frame = new JInternalFrame(windowTitle, true,true, true, true);
