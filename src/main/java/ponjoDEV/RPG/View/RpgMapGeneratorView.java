@@ -3,6 +3,7 @@ package ponjoDEV.RPG.View;
 import ponjoDEV.RPG.ImageProcessing.RpgMapGeneratorController;
 import ponjoDEV.RPG.ImageProcessing.TextureController;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -10,6 +11,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
 
 public class RpgMapGeneratorView extends JFrame {
     private final JDesktopPane theDesktop = new JDesktopPane();
@@ -389,7 +393,53 @@ public class RpgMapGeneratorView extends JFrame {
         saveCurrentZonesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO Its supposed to save the current zoneR zoneG zoneB into a image file and load
+                try {
+                    // Define the target directory
+                    String userHome = System.getProperty("user.home");
+                    String dirPath = Paths.get(userHome, "OneDrive", "Documentos", "RPGMapZones").toString();
+                    File dir = new File(dirPath);
+
+                    // Create directory if it doesn't exist
+                    if (!dir.exists()) {
+                        dir.mkdirs();
+                    }
+
+                    // Get the zone matrices from the controller
+                    int[][] matR = rpgController.getMatRCopy();
+                    int[][] matG = rpgController.getMatGCopy();
+                    int[][] matB = rpgController.getMatBCopy();
+
+                    if (matR != null && matG != null && matB != null) {
+                        // Create BufferedImage from zone matrices
+                        int[] pixels = new int[matR.length * matR[0].length * 3];
+                        BufferedImage image = new BufferedImage(matR[0].length, matR.length, BufferedImage.TYPE_INT_RGB);
+                        WritableRaster raster = image.getRaster();
+                        int pos = 0;
+                        for (int i = 0; i < matR.length; i++) {
+                            for (int j = 0; j < matR[0].length; j++) {
+                                pixels[pos] = matR[i][j];
+                                pixels[pos + 1] = matG[i][j];
+                                pixels[pos + 2] = matB[i][j];
+                                pos += 3;
+                            }
+                        }
+                        raster.setPixels(0, 0, matR[0].length, matR.length, pixels);
+
+                        // Generate filename with timestamp
+                        String fileName = "zone_map_" + System.currentTimeMillis() + ".png";
+                        File outputFile = new File(dir, fileName);
+
+                        // Save the image
+                        ImageIO.write(image, "png", outputFile);
+
+                        JOptionPane.showMessageDialog(null, "Zone map saved successfully to: " + outputFile.getAbsolutePath());
+                    } else {
+                        JOptionPane.showMessageDialog(null, "No zone data available. Please generate zones first.");
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error saving zone map: " + ex.getMessage());
+                }
             }
         });
         buttonPanel.add(saveCurrentZonesButton);
