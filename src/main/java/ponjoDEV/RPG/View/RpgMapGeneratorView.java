@@ -84,6 +84,7 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Initializing controller with this view instance
         rpgController = new RpgMapGeneratorController(this);
+        textureController = new TextureController();
 
         setupMenu();
         setupSliders();
@@ -170,6 +171,8 @@ public class RpgMapGeneratorView extends JFrame {
         inputPanel.add(new JLabel("Height:"));
         inputPanel.add(heightField);
 
+
+
         // Array of possible kinds of Textures
         JComboBox<String> texturesMenu = new JComboBox<>(textureController.getTextureFolders());
 
@@ -189,6 +192,8 @@ public class RpgMapGeneratorView extends JFrame {
         inputPanel.add(texturesMenu);
 
         inputPanel.add(refresh);
+
+        refresh.doClick();
 
         add(inputPanel, BorderLayout.NORTH);
     }

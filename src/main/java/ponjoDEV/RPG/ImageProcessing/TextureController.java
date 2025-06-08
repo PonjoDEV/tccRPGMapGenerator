@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class TextureController {
     private String path = "C:\\Program Files\\RPGMapGenerator\\RPGMapTextures";
-    private String[] textureFolders = new String[]{"sada","pingas"};
+    private String[] textureFolders = new String[]{"Elfic","Dwarfic"};
 
     public String getPath() {
         return path;
