@@ -107,7 +107,7 @@ public class Zone {
             } else {
                 if (rgb[1] == 255) {
                     if (rgb[2] == 0) {
-                        setType("Desert/Sand");
+                        setType("Desert");
                         setPriority(2);
                     }
                     if (rgb[2] == 255) {
@@ -127,7 +127,7 @@ public class Zone {
             } else {
                 if (rgb[1] == 255) {
                     if (rgb[2] == 0) {
-                        setType("Grassland/Forest");
+                        setType("Grassland");
                         setPriority(1);
                     }
                 }

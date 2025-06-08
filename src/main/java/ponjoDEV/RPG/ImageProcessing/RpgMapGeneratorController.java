@@ -146,6 +146,7 @@ public class RpgMapGeneratorController {
 
         int a =0;
         for (Zone zone : zones){
+
             a++;
             System.out.println(a+"°");
             System.out.println(zone.getType());
@@ -268,8 +269,8 @@ public class RpgMapGeneratorController {
 
                     switch (type) {
                         case "Mountain" -> spreadMountain(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
-                        case "Grassland/Forest" -> spreadForest(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
-                        case "Desert/Sand" -> spreadDesert(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                        case "Grassland" -> spreadForest(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                        case "Desert" -> spreadDesert(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
                         case "Water" -> spreadWater(i, j, red, green, blue, zone, spreadLimit,(double) startingSpread*0.09*0.7, mutationChance);
                         case "Roads" -> spreadRoads(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
                         case "Construction" -> spreadConstruction(red, green, blue, zone, spreadLimit, mutationChance);
