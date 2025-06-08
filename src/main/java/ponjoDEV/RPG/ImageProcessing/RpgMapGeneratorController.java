@@ -111,6 +111,7 @@ public class RpgMapGeneratorController {
             // First, copy the current state of the original matrices to the working copies
             originalMatToCopy();
 
+            //Ordering each zone by priority, consttruction is above all for it to create full rooms instead of another zone invading it
             zones.sort(Comparator.comparingInt(Zone::getPriority));
             spreadDrawnZones(matRCopy, matGCopy, matBCopy, zones, getZoneSpread(), getMutationChance());
 

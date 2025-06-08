@@ -1,5 +1,10 @@
 package ponjoDEV.RPG.ImageProcessing;
-
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TextureController {
     private String path = "C:\\Program Files\\RPGMapGenerator\\RPGMapTextures";
@@ -22,9 +27,27 @@ public class TextureController {
     }
 
     public String[] refreshFolders(String path) {
-        //TODO NAVIGATE TO THE PATH DESTINATION AND GET THE AVAILABLE FOLDERS, THEN SAVE ONTO texturePacks
-        String [] texturePacks = new String[]{path,"Harambe","Please","Forgive","Us"};
+        try {
+            Path dirPath = Paths.get(path);
 
-        return texturePacks;
+            // Check if the path exists and is a directory
+            if (!Files.exists(dirPath) || !Files.isDirectory(dirPath)) {
+                return new String[0]; // Return empty array if path doesn't exist or isn't a directory
+            }
+
+            // Get all directories in the specified path
+            List<String> folders = Files.list(dirPath).filter(Files::isDirectory).map(p -> p.getFileName().toString()).sorted().collect(Collectors.toList());
+
+            // Update the textureFolders field
+            this.textureFolders = folders.toArray(new String[0]);
+
+            return this.textureFolders;
+
+        } catch (IOException e) {
+            // Handle any IO exceptions (permission issues, etc.)
+            System.err.println("Error reading directories from path: " + path);
+            e.printStackTrace();
+            return new String[0]; // Return empty array on error
+        }
     }
 }
