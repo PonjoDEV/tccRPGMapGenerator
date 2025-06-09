@@ -1,5 +1,6 @@
 package ponjoDEV.RPG.ImageProcessing;
 
+import ponjoDEV.RPG.Model.Texture;
 import ponjoDEV.RPG.Model.Zone;
 import ponjoDEV.RPG.View.RpgMapGeneratorView;
 
@@ -11,7 +12,8 @@ public class RpgMapGeneratorController {
     public RpgMapGeneratorController(RpgMapGeneratorView view){ this.view = view; }
 
     private int[][] matR, matG, matB, matRCopy, matGCopy, matBCopy, drawn, spreaded;
-    private String path = "C:\\Program Files\\RPGMapGenerator\\RPGMapZones";
+    private String path = "C:\\Program Files\\RPGMapGenerator";
+    private  ArrayList<Zone> zones = new ArrayList<>();
 
     //deviation means how often the analysed pixel will differ from its surroundings
     //canvasMutation means the current pixel chance to change from its original value
@@ -89,7 +91,7 @@ public class RpgMapGeneratorController {
         this.mutationChance = mutationChance;
     }
 
-    public void fillUpZones(int [][] red, int [][] green, int [][] blue) {
+    public ArrayList<Zone> fillUpZones(int [][] red, int [][] green, int [][] blue) {
         //Saving the most used colors from the canvas in case all around the analysed pixel are blank spots
         HashMap<String, Integer> canvasColors = new HashMap<>();
         registerColors(0, red.length, 0, red[0].length, red, blue, green, canvasColors);
@@ -141,18 +143,10 @@ public class RpgMapGeneratorController {
             }
         }
 
-
+        //TODO SOMETIMES IT IS RETURNING A NUMBER DIFFERENT FROM THE USED ZONES LOOK INTO IT LATER
         registerDrawnZones(red, green, blue, zones);
 
-
-        int a =0;
-        for (Zone zone : zones){
-
-            a++;
-            System.out.println(a+"°");
-            System.out.println(zone.getType());
-
-        }
+        return zones;
 
     }
 
@@ -581,7 +575,7 @@ public class RpgMapGeneratorController {
         return rgb;
     }
 
-    public void generateZones(BufferedImage canvas) {
+    public ArrayList<Zone> generateZones(BufferedImage canvas) {
         // Check if the canvas image is available
         if (canvas == null) {
             System.out.println("Canvas image is null. Cannot generate zones.");
@@ -606,9 +600,12 @@ public class RpgMapGeneratorController {
                     spreaded[i][j] =0;
                 }
             }
+            zones.clear();
+            zones = fillUpZones(matRCopy, matGCopy, matBCopy);
 
-            fillUpZones(matRCopy, matGCopy, matBCopy);
+            return zones;
         }
+        return null;
     }
 
     private void originalMatToCopy(){
@@ -689,6 +686,44 @@ public class RpgMapGeneratorController {
         }
         System.out.println("No such zone found, zone ID:"+ tag);
         return null;
+    }
+
+    public void texturizeZone(ArrayList<Zone>zones, String texturePack) {
+        //Linking each texture to a zone so it can get the files by zoneType and then copy the texture into the zone
+        int a =0;
+        ArrayList <Texture> textures = new ArrayList<>();
+
+        for (Zone zone : zones){
+            Texture texture = new Texture();
+
+            texture.setSubPath(zone.getType());
+            texture.setMinY(zone.getEndY()-zone.getBegX());
+            texture.setMynX(zone.getEndX()-zone.getBegX());
+
+            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Textures\\"+texture.getSubPath();
+            textureFill(zone,texture,subPath);
+
+            subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+texture.getSubPath();
+            propFill(zone,texture,subPath);
+
+            System.out.println(subPath);
+
+
+
+            //TODO FOR EACH ZONE ADD A TEXTURE CORRESPONDING TO IT ON THE textures ARRAY AND PREPARE ITS DIMENSIONS
+            textures.add(texture);
+            a++;
+            System.out.println(a+"°");
+            System.out.println(zone.getType());
+        }
+    }
+
+    private void textureFill(Zone zone, Texture texture, String subPath) {
+        //TODO FILL THE MAP ZONES WITH TEXTURES FROM THE FOLDERS
+    }
+
+    private void propFill(Zone zone, Texture texture, String subPath) {
+        //TODO RANDOMLY COPY PROPS FROM THE MAP INTO THE ZONES BASED ON MUTATION CHANCE
     }
 
 }

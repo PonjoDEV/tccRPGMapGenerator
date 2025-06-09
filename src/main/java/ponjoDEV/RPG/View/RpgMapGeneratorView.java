@@ -2,6 +2,7 @@ package ponjoDEV.RPG.View;
 
 import ponjoDEV.RPG.ImageProcessing.RpgMapGeneratorController;
 import ponjoDEV.RPG.ImageProcessing.TextureController;
+import ponjoDEV.RPG.Model.Zone;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -14,18 +15,24 @@ import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class RpgMapGeneratorView extends JFrame {
     private final JDesktopPane theDesktop = new JDesktopPane();
     private final JFileChooser fileChooser = new JFileChooser();
-    private String path;
+    private String path, selectedTexturePack;
+
+    private ArrayList<Zone> zones = new ArrayList<>();
+    String[] textureFolders;
 
     private RpgMapGeneratorController rpgController = new RpgMapGeneratorController(this);
     private TextureController textureController = new TextureController();
 
     private final JTextField widthField = new JTextField("1200", 5);
     private final JTextField heightField = new JTextField("720", 5);
-    private final String[] colorMenu = new String[]{"Grassland/Forest", "Water", "Mountain", "Desert/Sand", "Construction", "Roads"};
+
+    // Array of possible kinds of Textures
+    JComboBox<String> texturesMenu = new JComboBox<>(textureController.getTextureFolders());
     private String selectedColor = "Grassland/Forest";
     private int lineThickness, test;
 
@@ -107,11 +114,11 @@ public class RpgMapGeneratorView extends JFrame {
         JPanel colorButtonPanel = new JPanel();
         colorButtonPanel.setLayout(new GridLayout(6, 1));
 
-        JButton grassland = new JButton("Grassland/Forest");
+        JButton grassland = new JButton("Grassland");
         grassland.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                selectedColor = "Grassland/Forest";
+                selectedColor = "Grassland";
             }
         });
         colorButtonPanel.add(grassland);
@@ -134,11 +141,11 @@ public class RpgMapGeneratorView extends JFrame {
         });
         colorButtonPanel.add(mountain);
 
-        JButton desertSand = new JButton("Desert/Sand");
+        JButton desertSand = new JButton("Desert");
         desertSand.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                selectedColor = "Desert/Sand";
+                selectedColor = "Desert";
             }
         });
         colorButtonPanel.add(desertSand);
@@ -171,20 +178,17 @@ public class RpgMapGeneratorView extends JFrame {
         inputPanel.add(new JLabel("Height:"));
         inputPanel.add(heightField);
 
-
-
-        // Array of possible kinds of Textures
-        JComboBox<String> texturesMenu = new JComboBox<>(textureController.getTextureFolders());
-
         JButton refresh = new JButton("Refresh");
                 refresh.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        String[] textureFolders = textureController.refreshFolders(textureController.getPath());
+
+                        textureFolders = textureController.refreshFolders(textureController.getPath());
                         texturesMenu.removeAllItems();
                         for (int i = 0; i < textureFolders.length; i++) {
                             texturesMenu.addItem(textureFolders[i]);
                         }
+
                     }
                 });
 
@@ -199,53 +203,6 @@ public class RpgMapGeneratorView extends JFrame {
     }
 
     private void setupMenu() {
-        /*
-        JMenuBar bar = new JMenuBar();
-
-        JMenu addMenu = new JMenu("Open");
-        JMenuItem fileItem = new JMenuItem("Open image file");
-        addMenu.add(fileItem);
-        bar.add(addMenu);
-
-        JMenu addMenu2 = new JMenu("Process");
-        JMenuItem regColors = new JMenuItem("Register used colors");
-        addMenu2.add(regColors);
-        bar.add(addMenu2);
-
-        setJMenuBar(bar);
-
-        //Reading the new image
-        fileItem.addActionListener(
-                new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        int result = fileChooser.showOpenDialog(null);
-                        if(result == JFileChooser.CANCEL_OPTION){
-                            return;
-                        }
-                        path = fileChooser.getSelectedFile().getAbsolutePath();
-
-                        JInternalFrame frame = new JInternalFrame("Source Image", true,true, true, true);
-                        Container container = frame.getContentPane();
-                        MyJPanel panel = new MyJPanel();
-                        container.add(panel, BorderLayout.CENTER);
-
-                        frame.pack();
-                        theDesktop.add(frame);
-                        frame.setVisible(true);
-                    }
-                }
-        );
-
-        //Option to register used colors not actually used right now as a user input, maybe replace or erase later
-        regColors.addActionListener(
-                new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-
-                    }
-                }
-        );*/
     }
 
     private void setupCanvas() {
@@ -368,7 +325,7 @@ public class RpgMapGeneratorView extends JFrame {
 
     private void setupButtons() {
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(5, 1));
+        buttonPanel.setLayout(new GridLayout(6, 1));
 
         //Creating and adding first button to the button panel
         JButton createNewCanvas = new JButton("New Canvas");
@@ -386,7 +343,8 @@ public class RpgMapGeneratorView extends JFrame {
                 new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        rpgController.generateZones(getCanvasImage());
+                        zones.clear();
+                        zones = rpgController.generateZones(getCanvasImage());
                         generateImage(rpgController.getMatRCopy(),rpgController.getMatGCopy(),rpgController.getMatBCopy(),"Generated Zones");
                     }
                 }
@@ -454,6 +412,7 @@ public class RpgMapGeneratorView extends JFrame {
         openZoneMapButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //TODO The source image to be copied to canvas instead of open it in a new window, or maybe open in a new window but copy it to mat
                         int result = fileChooser.showOpenDialog(null);
                         if (result == JFileChooser.CANCEL_OPTION) {
                             return;
@@ -480,10 +439,23 @@ public class RpgMapGeneratorView extends JFrame {
         createMapButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO using the zoneR zoneG zoneB its supposed to pick the assets from a folder and put them into the image, still not sure how to do though
+                rpgController.texturizeZone(zones, texturesMenu.getSelectedItem().toString());
+                //generateImage(rpgController.getMatRCopy(),rpgController.getMatGCopy(),rpgController.getMatBCopy(),"Generated Zones");
+                //TODO using the zoneR zoneG zoneB its supposed to pick the assets from a folder and put them into the image
             }
         });
         buttonPanel.add(createMapButton);
+
+        //Creating and adding sixth button to the button panel
+        JButton saveMapButton = new JButton("Save Map");
+        saveMapButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //TODO save the generated map
+            }
+        });
+        buttonPanel.add(saveMapButton);
+
         add(buttonPanel, BorderLayout.EAST);
     }
 
@@ -575,10 +547,10 @@ public class RpgMapGeneratorView extends JFrame {
 
         private Color getSelectedColor() {
             return switch (selectedColor) {
-                case "Grassland/Forest" -> Color.GREEN;
+                case "Grassland" -> Color.GREEN;
                 case "Water" -> Color.BLUE;
                 case "Mountains" -> Color.BLACK;
-                case "Desert/Sand" -> Color.YELLOW;
+                case "Desert" -> Color.YELLOW;
                 case "Construction" -> Color.RED;
                 case "Roads" -> Color.MAGENTA;
                 default -> Color.BLACK;

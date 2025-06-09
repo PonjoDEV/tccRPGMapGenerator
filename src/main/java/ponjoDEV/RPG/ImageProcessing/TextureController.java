@@ -10,13 +10,9 @@ public class TextureController {
     private String path = "C:\\Program Files\\RPGMapGenerator\\RPGMapTextures";
     private String[] textureFolders = new String[]{"Elfic","Dwarfic"};
 
-    public String getPath() {
-        return path;
-    }
+    public String getPath() { return path; }
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+    public void setPath(String path) { this.path = path; }
 
     public String[] getTextureFolders() {
         return textureFolders;
