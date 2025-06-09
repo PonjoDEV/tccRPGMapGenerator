@@ -439,7 +439,7 @@ public class RpgMapGeneratorView extends JFrame {
         createMapButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                rpgController.texturizeZone(zones, texturesMenu.getSelectedItem().toString());
+                rpgController.texturizeZone(zones, texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100);
                 //generateImage(rpgController.getMatRCopy(),rpgController.getMatGCopy(),rpgController.getMatBCopy(),"Generated Zones");
                 //TODO using the zoneR zoneG zoneB its supposed to pick the assets from a folder and put them into the image
             }

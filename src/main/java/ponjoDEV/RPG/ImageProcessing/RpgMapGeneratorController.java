@@ -688,7 +688,7 @@ public class RpgMapGeneratorController {
         return null;
     }
 
-    public void texturizeZone(ArrayList<Zone>zones, String texturePack) {
+    public void texturizeZone(ArrayList<Zone>zones, String texturePack, double mutationChance) {
         //Linking each texture to a zone so it can get the files by zoneType and then copy the texture into the zone
         int a =0;
         ArrayList <Texture> textures = new ArrayList<>();
@@ -701,10 +701,12 @@ public class RpgMapGeneratorController {
             texture.setMynX(zone.getEndX()-zone.getBegX());
 
             String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Textures\\"+texture.getSubPath();
-            textureFill(zone,texture,subPath);
+            int file = fileChooser(subPath, mutationChance);
+            textureFill(zone, texture, subPath, file);
 
             subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+texture.getSubPath();
-            propFill(zone,texture,subPath);
+            file = fileChooser(subPath, mutationChance);
+            propFill(zone, texture, subPath, file);
 
             System.out.println(subPath);
 
@@ -718,12 +720,20 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private void textureFill(Zone zone, Texture texture, String subPath) {
-        //TODO FILL THE MAP ZONES WITH TEXTURES FROM THE FOLDERS
+    private int fileChooser(String subPath, double mutationChance) {
+        //TODO BROWSE A FOLDER AND EACH FILE IS NUMBERED, THEN CHOSE A FILE BASED ON A RANDOM NUMBER AND MUTATION
+        return (int)Math.random();
     }
 
-    private void propFill(Zone zone, Texture texture, String subPath) {
-        //TODO RANDOMLY COPY PROPS FROM THE MAP INTO THE ZONES BASED ON MUTATION CHANCE
+    private void textureFill(Zone zone, Texture texture, String subPath, int fileNumber) {
+        //TODO FILL THE MAP ZONES WITH TEXTURES FROM THE FOLDERS, WHICH FILE TO USE FROM THE FOLDER ON EACH ZONE WILL BE CHOSEN BASED ON MUTATION CHANCE,
+        // THE textureMinY and minX will decide which point of the texture will be copied, if the random selected point is bigger than the file x size - textureMinX, textureMinX will be used,
+        // same as Y axis
+    }
+
+    private void propFill(Zone zone, Texture texture, String subPath, int fileNumber) {
+        //TODO RANDOMLY COPY PROPS FROM THE MAP INTO THE ZONES, THE POSITION AND WHICH FILE TO USE FROM THE FOLDER ON EACH ZONE WILL BE CHOSEN BASED
+        // FOR NOW I DONT HAVE THOUGHT OF A WAY TO PROPERLY POPULATE THE AREA
     }
 
 }
