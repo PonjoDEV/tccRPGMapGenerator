@@ -5,7 +5,12 @@ import ponjoDEV.RPG.Model.Zone;
 import ponjoDEV.RPG.View.RpgMapGeneratorView;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RpgMapGeneratorController {
     private RpgMapGeneratorView view;
@@ -720,9 +725,47 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private int fileChooser(String subPath, double mutationChance) {
-        //TODO BROWSE A FOLDER AND EACH FILE IS NUMBERED, THEN CHOSE A FILE BASED ON A RANDOM NUMBER AND MUTATION
-        return (int)Math.random();
+    public int fileChooser(String folderPath, double mutationChance) {
+        try {
+            Path folder = Paths.get(folderPath);
+            if (!Files.exists(folder) || !Files.isDirectory(folder)) {
+                return -1; // Invalid folder
+            }
+
+            // Get all image files and sort them for consistent numbering
+            List<Path> imageFiles = Files.list(folder)
+                    .filter(Files::isRegularFile)
+                    .filter(path -> {
+                        String fileName = path.getFileName().toString().toLowerCase();
+                        return fileName.endsWith(".png") || fileName.endsWith(".jpg") ||
+                                fileName.endsWith(".jpeg") || fileName.endsWith(".bmp");
+                    })
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            if (imageFiles.isEmpty()) {
+                return -1; // No image files found
+            }
+
+            // Choose a random file index
+            Random random = new Random();
+            int selectedIndex = random.nextInt(imageFiles.size());
+
+            // Apply mutation chance - if mutation triggers, select a different random file
+            if (random.nextInt(100) < mutationChance && imageFiles.size() > 1) {
+                int mutatedIndex;
+                do {
+                    mutatedIndex = random.nextInt(imageFiles.size());
+                } while (mutatedIndex == selectedIndex);
+                selectedIndex = mutatedIndex;
+            }
+
+            return selectedIndex;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return -1;
+        }
     }
 
     private void textureFill(Zone zone, Texture texture, String subPath, int fileNumber) {
