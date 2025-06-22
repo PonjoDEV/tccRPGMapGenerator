@@ -251,10 +251,10 @@ public class RpgMapGeneratorController {
             drawn[y][x] = tag;
             zone.setSize(zone.getSize()+1);
 
-            zone.setBegY(Math.min(zone.getBegY(), y));
-            zone.setEndY(Math.max(zone.getEndY(), y));
-            zone.setBegX(Math.min(zone.getBegX(), x));
-            zone.setEndX(Math.max(zone.getEndX(), x));
+            zone.setMinY(Math.min(zone.getMinY(), y));
+            zone.setMaxY(Math.max(zone.getMaxY(), y));
+            zone.setMinX(Math.min(zone.getMinX(), x));
+            zone.setMaxX(Math.max(zone.getMaxX(), x));
 
             stack.push(new int[]{y + 1, x});
             stack.push(new int[]{y - 1, x});
@@ -354,8 +354,8 @@ public class RpgMapGeneratorController {
         //TODO add a chance for other construction shapes
 
         //Square shaped constructions
-        for (int i = zone.getBegY(); i < zone.getEndY(); i++) {
-            for (int j = zone.getBegX(); j < zone.getEndX(); j++) {
+        for (int i = zone.getMinY(); i < zone.getMaxY(); i++) {
+            for (int j = zone.getMinX(); j < zone.getMaxX(); j++) {
                 red[i][j] = zone.getRed();
                 green[i][j] = zone.getGreen();
                 blue[i][j] = zone.getBlue();
@@ -716,8 +716,8 @@ public class RpgMapGeneratorController {
             Texture texture = new Texture();
 
             texture.setSubPath(zone.getType());
-            texture.setMinY(zone.getEndY()-zone.getBegX());
-            texture.setMynX(zone.getEndX()-zone.getBegX());
+            texture.setMinY(zone.getMaxY()-zone.getMinX());
+            texture.setMynX(zone.getMaxX()-zone.getMinX());
 
             a++;
             System.out.println(a+"°");

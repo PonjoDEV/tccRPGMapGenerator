@@ -1,7 +1,13 @@
 package ponjoDEV.RPG.Model;
 
 public class Zone {
-    int begY = Integer.MAX_VALUE, begX = Integer.MAX_VALUE, endY=0, endX=0, tag, priority, size=0;
+    int minY = Integer.MAX_VALUE;
+    int minX = Integer.MAX_VALUE;
+    int maxY =0;
+    int maxX =0;
+    int tag;
+    int priority;
+    int size=0;
     String type;
     int [] initCoord, rgb = new int[3];
 
@@ -31,36 +37,36 @@ public class Zone {
 
     public void setSize(int size) {this.size = size;}
 
-    public int getBegY() {
-        return begY;
+    public int getMinY() {
+        return minY;
     }
 
-    public void setBegY(int begY) {
-        this.begY = begY;
+    public void setMinY(int minY) {
+        this.minY = minY;
     }
 
-    public int getBegX() {
-        return begX;
+    public int getMinX() {
+        return minX;
     }
 
-    public void setBegX(int begX) {
-        this.begX = begX;
+    public void setMinX(int minX) {
+        this.minX = minX;
     }
 
-    public int getEndY() {
-        return endY;
+    public int getMaxY() {
+        return maxY;
     }
 
-    public void setEndY(int endY) {
-        this.endY = endY;
+    public void setMaxY(int maxY) {
+        this.maxY = maxY;
     }
 
-    public int getEndX() {
-        return endX;
+    public int getMaxX() {
+        return maxX;
     }
 
-    public void setEndX(int endX) {
-        this.endX = endX;
+    public void setMaxX(int maxX) {
+        this.maxX = maxX;
     }
 
     public int getRed() { return rgb[0]; }
