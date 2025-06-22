@@ -443,9 +443,11 @@ public class RpgMapGeneratorView extends JFrame {
                 Vector<int[][]> rgb = new Vector<>();
                 rgb = rpgController.createMap(zones, texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100);
 
-                generateImage(rgb.get(0),rgb.get(1),rgb.get(2),"Generated Map");
-                //generateImage(rpgController.getMatRCopy(),rpgController.getMatGCopy(),rpgController.getMatBCopy(),"Generated Zones");
-                //TODO using the zoneR zoneG zoneB its supposed to pick the assets from a folder and put them into the image
+                rpgController.setTexR(rgb.get(0));
+                rpgController.setTexG(rgb.get(1));
+                rpgController.setTexB(rgb.get(2));
+
+                generateImage(rpgController.getTexR(),rpgController.getTexG(),rpgController.getTexB(),"Generated Map");
             }
         });
         buttonPanel.add(createMapButton);

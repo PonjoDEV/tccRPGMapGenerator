@@ -16,7 +16,7 @@ public class RpgMapGeneratorController {
     private RpgMapGeneratorView view;
     public RpgMapGeneratorController(RpgMapGeneratorView view){ this.view = view; }
 
-    private int[][] matR, matG, matB, matRCopy, matGCopy, matBCopy, drawn, spreaded;
+    private int[][] matR, matG, matB, matRCopy, matGCopy, matBCopy, drawn, spreaded, texR, texG, texB;
     private String path = "C:\\Program Files\\RPGMapGenerator";
     private  ArrayList<Zone> zones = new ArrayList<>();
 
@@ -75,6 +75,18 @@ public class RpgMapGeneratorController {
     public void setMatBCopy(int[][] matBCopy) {
         this.matBCopy = matBCopy;
     }
+
+    public int[][] getTexB() { return texB; }
+
+    public void setTexB(int[][] texB) { this.texB = texB; }
+
+    public int[][] getTexG() { return texG; }
+
+    public void setTexG(int[][] texG) { this.texG = texG; }
+
+    public int[][] getTexR() { return texR; }
+
+    public void setTexR(int[][] texR) { this.texR = texR; }
 
     public double getSurroundingWeight() {
         return surroundingWeight;
@@ -707,19 +719,16 @@ public class RpgMapGeneratorController {
             texture.setMinY(zone.getEndY()-zone.getBegX());
             texture.setMynX(zone.getEndX()-zone.getBegX());
 
-            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Textures\\"+texture.getSubPath();
-            int file = fileChooser(subPath, mutationChance);
-            //TODO Fill the texR G and B with the texture from the file
-            textureFill(zone, texture, subPath, file, texR, texG, texB);
-
             a++;
             System.out.println(a+"°");
             System.out.println(zone.getType());
+
+            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Textures\\"+texture.getSubPath();
+            int file = fileChooser(subPath, mutationChance);
+
+            textureFill(zone, texture, subPath, mutationChance, file, texR, texG, texB);
+
         }
-
-
-
-
 
         //PROPS
         /*
@@ -789,10 +798,52 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private void textureFill(Zone zone, Texture texture, String subPath, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
-        //TODO FILL THE MAP ZONES WITH TEXTURES FROM THE FOLDERS, WHICH FILE TO USE FROM THE FOLDER ON EACH ZONE WILL BE CHOSEN BASED ON MUTATION CHANCE,
-        // THE textureMinY and minX will decide which point of the texture will be copied, if the random selected point is bigger than the file x size - textureMinX, textureMinX will be used,
-        // same as Y axis
+    public void textureFill(Zone zone, Texture texture, String subPath, double mutationChance, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
+        try {
+
+            // Convert the path to a Path object
+            Path directory = Paths.get(subPath);
+
+            // Check if the directory exists
+            if (!Files.exists(directory) || !Files.isDirectory(directory)) {
+                System.out.println("Directory not found: " + subPath);
+                return;
+            }
+
+            // List all files in the directory
+            List<Path> files = Files.list(directory)
+                    .filter(Files::isRegularFile)
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            // Check if we have enough files and the fileNumber is valid
+            if (files.isEmpty()) {
+                System.out.println("No files found in directory: " + subPath);
+                return;
+            }
+
+            if (fileNumber < 0 || fileNumber >= files.size()) {
+                System.out.println("Invalid file number: " + fileNumber + " (available files: " + files.size() + ")");
+                return;
+            }
+
+            //TODO COPY THE IMAGE PIXELS FROM TH FILES TO THE PIXEL CONTAINED IN THE zone TO THE MATRIX texR, texG, texB.
+            // FIRST STEP IS TO LOAD THE SELECTED FILE IMAGE AS A RGB MATRIX AS DID ON THE DRAWN IMAGES
+            // SECOND STEP SELECT A RANDOM STARTING POINT FROM THE TEXTURE IMAGE, IF THE SELECTED POINT X AND Y AXI ARE BIGGER THAN THE DIFFERENCE
+            // BETWEEN THE TEXTURE AND THE ZONE MAXIMUM SIZES, USE THE texture TO GET THE MINIMUM STARTING POINT TO START COPYING
+            // THIRD STEP IS TO COPY EACH R G B PIXELS FROM THE SELECTED FILE, TO THE texR texG texB MATRIX
+
+            //Test to see if the correct textures are being selected
+            /*
+            // Get the selected file and print its name
+            Path selectedFile = files.get(fileNumber);
+            System.out.println("Selected texture file: " + selectedFile.getFileName().toString());
+            //*/
+
+        } catch (IOException e) {
+            System.err.println("Error accessing directory: " + e.getMessage());
+        }
+
     }
 
     private void propFill(Zone zone, Texture texture, String subPath, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
