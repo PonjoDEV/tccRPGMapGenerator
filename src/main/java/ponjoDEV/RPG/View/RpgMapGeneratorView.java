@@ -481,7 +481,7 @@ public class RpgMapGeneratorView extends JFrame {
         raster.setPixels(0, 0, matrix1[0].length, matrix1.length, pixels);
 
         // Close the previous "Generated Zones" frame if it exists
-        if (lastGeneratedZonesFrame != null) { lastGeneratedZonesFrame.dispose(); }
+        if (lastGeneratedZonesFrame != null && lastGeneratedZonesFrame.getTitle().equals(windowTitle)) { lastGeneratedZonesFrame.dispose(); }
 
         //Opens Image Window
         JInternalFrame frame = new JInternalFrame(windowTitle, true,true, true, true);

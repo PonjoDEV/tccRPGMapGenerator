@@ -834,7 +834,7 @@ public class RpgMapGeneratorController {
             // THIRD STEP IS TO COPY EACH R G B PIXELS FROM THE SELECTED FILE, TO THE texR texG texB MATRIX
 
             //Test to see if the correct textures are being selected
-            /*
+
             // Get the selected file and print its name
             Path selectedFile = files.get(fileNumber);
             System.out.println("Selected texture file: " + selectedFile.getFileName().toString());
