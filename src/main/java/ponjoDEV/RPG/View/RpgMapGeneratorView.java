@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Vector;
 
 public class RpgMapGeneratorView extends JFrame {
     private final JDesktopPane theDesktop = new JDesktopPane();
@@ -439,7 +440,10 @@ public class RpgMapGeneratorView extends JFrame {
         createMapButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                rpgController.texturizeZone(zones, texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100);
+                Vector<int[][]> rgb = new Vector<>();
+                rgb = rpgController.createMap(zones, texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100);
+
+                generateImage(rgb.get(0),rgb.get(1),rgb.get(2),"Generated Map");
                 //generateImage(rpgController.getMatRCopy(),rpgController.getMatGCopy(),rpgController.getMatBCopy(),"Generated Zones");
                 //TODO using the zoneR zoneG zoneB its supposed to pick the assets from a folder and put them into the image
             }
