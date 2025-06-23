@@ -4,6 +4,7 @@ import ponjoDEV.RPG.Model.Texture;
 import ponjoDEV.RPG.Model.Zone;
 import ponjoDEV.RPG.View.RpgMapGeneratorView;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -707,9 +708,12 @@ public class RpgMapGeneratorController {
 
     public Vector<int[][]> createMap(ArrayList<Zone>zones, String texturePack, double mutationChance) {
         //Linking each texture to a zone so it can get the files by zoneType and then copy the texture into the zone
-        int a =0;
+        int count =0;
 
-        int[][] texR = new int[matR.length][matR[0].length], texG = new int[matR.length][matR[0].length], texB = new int[matR.length][matR[0].length];
+        //TODO UNDERSTAND WHY I NEED THIS HERE TO WORK
+        int[][] texR = new int[matR.length][matR[0].length];
+        int [][] texG = new int[matR.length][matR[0].length];
+        int [][] texB = new int[matR.length][matR[0].length];
 
         //TEXTURE
         for (Zone zone : zones){
@@ -719,8 +723,8 @@ public class RpgMapGeneratorController {
             texture.setMinY(zone.getMaxY()-zone.getMinX());
             texture.setMynX(zone.getMaxX()-zone.getMinX());
 
-            a++;
-            System.out.println(a+"°");
+            count++;
+            System.out.println(count+"°");
             System.out.println(zone.getType());
 
             String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Textures\\"+texture.getSubPath();
@@ -827,23 +831,59 @@ public class RpgMapGeneratorController {
                 return;
             }
 
+
+            //TODO STUDY THIS METHOD AGAIN WHEN GET HOME ASAP
+            Path selectedFile = files.get(fileNumber);
+            System.out.println("Selected texture file: " + selectedFile.getFileName().toString());
+
+            // Load the selected file as a BufferedImage
+            BufferedImage img = ImageIO.read(selectedFile.toFile());
+
+            int initY =(int) Math.random()*img.getHeight();
+            if (initY > img.getHeight()- texture.getMinY()) initY = img.getHeight()- texture.getMinY();
+            int initX =(int) Math.random()*img.getWidth();
+            if(initX > img.getWidth()- texture.getMynX()) initX = img.getWidth() - texture.getMynX();
+
+
+
+            //TODO COPY THE IMAGE ON THE FORMAT OF THE ZONE,
+            // WHY IS IT ONLY DOING THIS FOR THE FIRST ZONES, AND WHY IS EVERYTIME GETTING THE SAME PIXEL AREA AND CUTTING THE IMAGE,
+            // SOME ZONE PARTS ARE GETTING BLACK
+            for (int i = initY ; i < initY + texture.getMinY(); i++) {
+                for (int j = initX; j < initX + texture.getMynX(); j++) {
+                    if(zone.getTag() == drawn[i][j]) {
+                        int[] rgb = getPixelData(img, j, i);
+                        texR[i][j] = rgb[0];
+                        texG[i][j] = rgb[1];
+                        texB[i][j] = rgb[2];
+                    }
+                }
+            }
+
+            for (int i = zone.getMinY(); i <zone.getMaxY(); i++) {
+                for (int j = zone.getMinX(); j < zone.getMaxX(); j++) {
+
+                }
+            }
+
+            Vector<int[][]> rgb = new Vector<>();
+            rgb.add(texR);
+            rgb.add(texG);
+            rgb.add(texB);
+
+
+
             //TODO COPY THE IMAGE PIXELS FROM TH FILES TO THE PIXEL CONTAINED IN THE zone TO THE MATRIX texR, texG, texB.
             // FIRST STEP IS TO LOAD THE SELECTED FILE IMAGE AS A RGB MATRIX AS DID ON THE DRAWN IMAGES
             // SECOND STEP SELECT A RANDOM STARTING POINT FROM THE TEXTURE IMAGE, IF THE SELECTED POINT X AND Y AXI ARE BIGGER THAN THE DIFFERENCE
             // BETWEEN THE TEXTURE AND THE ZONE MAXIMUM SIZES, USE THE texture TO GET THE MINIMUM STARTING POINT TO START COPYING
             // THIRD STEP IS TO COPY EACH R G B PIXELS FROM THE SELECTED FILE, TO THE texR texG texB MATRIX
 
-            //Test to see if the correct textures are being selected
 
-            // Get the selected file and print its name
-            Path selectedFile = files.get(fileNumber);
-            System.out.println("Selected texture file: " + selectedFile.getFileName().toString());
-            //*/
 
         } catch (IOException e) {
             System.err.println("Error accessing directory: " + e.getMessage());
         }
-
     }
 
     private void propFill(Zone zone, Texture texture, String subPath, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
