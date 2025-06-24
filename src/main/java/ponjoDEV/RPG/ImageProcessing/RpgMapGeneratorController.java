@@ -1,6 +1,5 @@
 package ponjoDEV.RPG.ImageProcessing;
 
-import ponjoDEV.RPG.Model.Texture;
 import ponjoDEV.RPG.Model.Zone;
 import ponjoDEV.RPG.View.RpgMapGeneratorView;
 
