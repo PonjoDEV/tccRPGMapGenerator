@@ -717,20 +717,15 @@ public class RpgMapGeneratorController {
 
         //TEXTURE
         for (Zone zone : zones){
-            Texture texture = new Texture();
-
-            texture.setSubPath(zone.getType());
-            texture.setMinY(zone.getMaxY()-zone.getMinX());
-            texture.setMynX(zone.getMaxX()-zone.getMinX());
 
             count++;
             System.out.println(count+"°");
             System.out.println(zone.getType());
 
-            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Textures\\"+texture.getSubPath();
+            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Textures\\"+zone.getType();
             int file = fileChooser(subPath, mutationChance);
 
-            textureFill(zone, texture, subPath, mutationChance, file, texR, texG, texB);
+            textureFill(zone, subPath, mutationChance, file, texR, texG, texB);
 
         }
 
@@ -738,12 +733,10 @@ public class RpgMapGeneratorController {
         /*
         for (Zone zone: zones){
 
-            Texture texture = new Texture();
-            texture.setSubPath(zone.getType());
 
-            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+texture.getSubPath();
+            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+zone.getType();
             int file = fileChooser(subPath, mutationChance);
-            propFill(zone, texture, subPath, file, texR, texG, texB);
+            propFill(zone, subPath, file, texR, texG, texB);
 
             System.out.println(subPath);
         }
@@ -802,9 +795,8 @@ public class RpgMapGeneratorController {
         }
     }
 
-    public void textureFill(Zone zone, Texture texture, String subPath, double mutationChance, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
+    public void textureFill(Zone zone, String subPath, double mutationChance, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
         try {
-
             // Convert the path to a Path object
             Path directory = Paths.get(subPath);
 
@@ -831,62 +823,92 @@ public class RpgMapGeneratorController {
                 return;
             }
 
-
-            //TODO STUDY THIS METHOD AGAIN WHEN GET HOME ASAP
+            // Get the selected file and load as BufferedImage
             Path selectedFile = files.get(fileNumber);
             System.out.println("Selected texture file: " + selectedFile.getFileName().toString());
-
-            // Load the selected file as a BufferedImage
             BufferedImage img = ImageIO.read(selectedFile.toFile());
 
-            int initY =(int) Math.random()*img.getHeight();
-            if (initY > img.getHeight()- texture.getMinY()) initY = img.getHeight()- texture.getMinY();
-            int initX =(int) Math.random()*img.getWidth();
-            if(initX > img.getWidth()- texture.getMynX()) initX = img.getWidth() - texture.getMynX();
+            if (img == null) {
+                System.err.println("Failed to load image: " + selectedFile);
+                return;
+            }
 
+            // Calculate zone dimensions
+            int zoneWidth = zone.getMaxX() - zone.getMinX() + 1;
+            int zoneHeight = zone.getMaxY() - zone.getMinY() + 1;
 
+            // Get texture dimensions
+            int textureWidth = img.getWidth();
+            int textureHeight = img.getHeight();
 
-            //TODO COPY THE IMAGE ON THE FORMAT OF THE ZONE,
-            // WHY IS IT ONLY DOING THIS FOR THE FIRST ZONES, AND WHY IS EVERYTIME GETTING THE SAME PIXEL AREA AND CUTTING THE IMAGE,
-            // SOME ZONE PARTS ARE GETTING BLACK
-            for (int i = initY ; i < initY + texture.getMinY(); i++) {
-                for (int j = initX; j < initX + texture.getMynX(); j++) {
-                    if(zone.getTag() == drawn[i][j]) {
-                        int[] rgb = getPixelData(img, j, i);
-                        texR[i][j] = rgb[0];
-                        texG[i][j] = rgb[1];
-                        texB[i][j] = rgb[2];
+            // Calculate safe starting bounds for random texture selection
+            int maxStartX = Math.max(0, textureWidth - zoneWidth);
+            int maxStartY = Math.max(0, textureHeight - zoneHeight);
+
+            // Generate random starting point
+            Random random = new Random();
+            int startX = maxStartX > 0 ? random.nextInt(maxStartX + 1) : 0;
+            int startY = maxStartY > 0 ? random.nextInt(maxStartY + 1) : 0;
+
+            // Create temporary arrays to store texture portion (zone-sized)
+            int[][] tempR = new int[zoneHeight][zoneWidth];
+            int[][] tempG = new int[zoneHeight][zoneWidth];
+            int[][] tempB = new int[zoneHeight][zoneWidth];
+
+            // Copy texture portion to temporary arrays
+            for (int y = 0; y < zoneHeight; y++) {
+                for (int x = 0; x < zoneWidth; x++) {
+                    // Calculate texture coordinates with wrapping if needed
+                    int texX = (startX + x) % textureWidth;
+                    int texY = (startY + y) % textureHeight;
+
+                    // Get RGB values from texture
+                    int rgb = img.getRGB(texX, texY);
+                    int red = (rgb >> 16) & 0xFF;
+                    int green = (rgb >> 8) & 0xFF;
+                    int blue = rgb & 0xFF;
+
+                    // Apply mutation chance for variation
+                    if (random.nextDouble() < mutationChance) {
+                        red = Math.max(0, Math.min(255, red + random.nextInt(21) - 10));
+                        green = Math.max(0, Math.min(255, green + random.nextInt(21) - 10));
+                        blue = Math.max(0, Math.min(255, blue + random.nextInt(21) - 10));
+                    }
+
+                    tempR[y][x] = red;
+                    tempG[y][x] = green;
+                    tempB[y][x] = blue;
+                }
+            }
+
+            // Apply texture to zone areas in the main matrices
+            for (int y = zone.getMinY(); y <= zone.getMaxY(); y++) {
+                for (int x = zone.getMinX(); x <= zone.getMaxX(); x++) {
+                    // Check bounds
+                    if (y >= 0 && y < drawn.length && x >= 0 && x < drawn[0].length) {
+                        // Only apply texture where the zone exists
+                        if (drawn[y][x] == zone.getTag() || spreaded[y][x] == zone.getTag()) {
+                            // Calculate relative position within the zone
+                            int relativeY = y - zone.getMinY();
+                            int relativeX = x - zone.getMinX();
+
+                            // Apply texture from temporary arrays
+                            if (relativeY < zoneHeight && relativeX < zoneWidth) {
+                                texR[y][x] = tempR[relativeY][relativeX];
+                                texG[y][x] = tempG[relativeY][relativeX];
+                                texB[y][x] = tempB[relativeY][relativeX];
+                            }
+                        }
                     }
                 }
             }
 
-            for (int i = zone.getMinY(); i <zone.getMaxY(); i++) {
-                for (int j = zone.getMinX(); j < zone.getMaxX(); j++) {
-
-                }
-            }
-
-            Vector<int[][]> rgb = new Vector<>();
-            rgb.add(texR);
-            rgb.add(texG);
-            rgb.add(texB);
-
-
-
-            //TODO COPY THE IMAGE PIXELS FROM TH FILES TO THE PIXEL CONTAINED IN THE zone TO THE MATRIX texR, texG, texB.
-            // FIRST STEP IS TO LOAD THE SELECTED FILE IMAGE AS A RGB MATRIX AS DID ON THE DRAWN IMAGES
-            // SECOND STEP SELECT A RANDOM STARTING POINT FROM THE TEXTURE IMAGE, IF THE SELECTED POINT X AND Y AXI ARE BIGGER THAN THE DIFFERENCE
-            // BETWEEN THE TEXTURE AND THE ZONE MAXIMUM SIZES, USE THE texture TO GET THE MINIMUM STARTING POINT TO START COPYING
-            // THIRD STEP IS TO COPY EACH R G B PIXELS FROM THE SELECTED FILE, TO THE texR texG texB MATRIX
-
-
-
         } catch (IOException e) {
-            System.err.println("Error accessing directory: " + e.getMessage());
+            System.err.println("Error accessing directory or loading image: " + e.getMessage());
         }
     }
 
-    private void propFill(Zone zone, Texture texture, String subPath, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
+    private void propFill(Zone zone, String subPath, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
         //TODO RANDOMLY COPY PROPS FROM THE MAP INTO THE ZONES, THE POSITION AND WHICH FILE TO USE FROM THE FOLDER ON EACH ZONE WILL BE CHOSEN BASED
         // FOR NOW I DONT HAVE THOUGHT OF A WAY TO PROPERLY POPULATE THE AREA
     }

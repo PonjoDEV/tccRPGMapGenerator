@@ -2,7 +2,7 @@ package ponjoDEV.RPG.Model;
 
 public class Texture {
     String subPath;
-    int minY, mynX;
+    int minY, minX;
 
     public String getSubPath() { return subPath; }
 
@@ -12,7 +12,7 @@ public class Texture {
 
     public void setMinY(int minY) { this.minY = minY;}
 
-    public int getMynX() { return mynX; }
+    public int getMinX() { return minX; }
 
-    public void setMynX(int mynX) {this.mynX = mynX; }
+    public void setMinX(int minX) {this.minX = minX; }
 }
