@@ -103,6 +103,7 @@ public class RpgMapGeneratorView extends JFrame {
         createNewCanvas();
 
 
+
         add(theDesktop, BorderLayout.CENTER);
 
 
@@ -168,6 +169,8 @@ public class RpgMapGeneratorView extends JFrame {
             }
         });
         colorButtonPanel.add(roads);
+
+        grassland.doClick();
 
         add(colorButtonPanel, BorderLayout.WEST);
     }
