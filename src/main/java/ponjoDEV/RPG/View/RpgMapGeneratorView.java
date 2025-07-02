@@ -444,7 +444,7 @@ public class RpgMapGeneratorView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Vector<int[][]> rgb = new Vector<>();
-                rgb = rpgController.createMap(zones, texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100);
+                rgb = rpgController.createMap(zones, texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100, rpgController.getPropDensity());
 
                 rpgController.setTexR(rgb.get(0));
                 rpgController.setTexG(rgb.get(1));

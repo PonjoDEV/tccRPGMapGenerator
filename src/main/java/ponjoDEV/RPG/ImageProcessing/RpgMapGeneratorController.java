@@ -495,7 +495,7 @@ public class RpgMapGeneratorController {
 
 
 
-    public Vector<int[][]> createMap(ArrayList<Zone>zones, String texturePack, double mutationChance) {
+    public Vector<int[][]> createMap(ArrayList<Zone>zones, String texturePack, double mutationChance, double propDensity) {
         //Linking each texture to a zone so it can get the files by zoneType and then copy the texture into the zone
         int count =0;
 
@@ -519,13 +519,13 @@ public class RpgMapGeneratorController {
         }
 
         //PROPS
-        /*
+
         for (Zone zone: zones){
 
 
             String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+zone.getType();
             int file = fileChooser(subPath, mutationChance);
-            propFill(zone, subPath, file, texR, texG, texB);
+            propFill(zone, subPath, file, texR, texG, texB, propDensity);
 
             System.out.println(subPath);
         }
@@ -655,7 +655,7 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private void propFill(Zone zone, String subPath, int fileNumber, int[][] texR, int[][] texG, int[][] texB) {
+    private void propFill(Zone zone, String subPath, int fileNumber, int[][] texR, int[][] texG, int[][] texB, double propDensity) {
         //TODO RANDOMLY COPY PROPS FROM THE MAP INTO THE ZONES, THE POSITION AND WHICH FILE TO USE FROM THE FOLDER ON EACH ZONE WILL BE CHOSEN BASED
         // FOR NOW I DONT HAVE THOUGHT OF A WAY TO PROPERLY POPULATE THE AREA
     }
