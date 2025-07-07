@@ -304,7 +304,7 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 5: Prop density
         JLabel propDensityLabel = new JLabel("Prop Density");
-        JSlider propDensitySlider = new JSlider(0, 100);
+        JSlider propDensitySlider = new JSlider(10, 100);
         propDensitySlider.setValue(30);
         propDensitySlider.addChangeListener(new ChangeListener() {
             @Override
@@ -329,7 +329,7 @@ public class RpgMapGeneratorView extends JFrame {
 
     private void setupButtons() {
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(6, 1));
+        buttonPanel.setLayout(new GridLayout(7, 1));
 
         //Creating and adding first button to the button panel
         JButton createNewCanvas = new JButton("New Canvas");
@@ -439,12 +439,12 @@ public class RpgMapGeneratorView extends JFrame {
         buttonPanel.add(openZoneMapButton);
 
         //Creating and adding fifth button to the button panel
-        JButton createMapButton = new JButton("Create Map");
-        createMapButton.addActionListener(new ActionListener() {
+        JButton texturizeMapButton = new JButton("Texturize Map");
+        texturizeMapButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Vector<int[][]> rgb = new Vector<>();
-                rgb = rpgController.createMap(zones, texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100, rpgController.getPropDensity());
+                rgb = rpgController.texturizeMap(zones, texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100, rpgController.getPropDensity());
 
                 rpgController.setTexR(rgb.get(0));
                 rpgController.setTexG(rgb.get(1));
@@ -453,9 +453,26 @@ public class RpgMapGeneratorView extends JFrame {
                 generateImage(rpgController.getTexR(),rpgController.getTexG(),rpgController.getTexB(),"Generated Map");
             }
         });
-        buttonPanel.add(createMapButton);
+        buttonPanel.add(texturizeMapButton);
 
         //Creating and adding sixth button to the button panel
+        JButton addPropsButton = new JButton("Add Props");
+        addPropsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Vector<int[][]> rgb = new Vector<>();
+                rgb = rpgController.addProps(zones, rpgController.getTexR(),rpgController.getTexG(),rpgController.getTexB(), texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100, rpgController.getPropDensity());
+
+                rpgController.setTexR(rgb.get(0));
+                rpgController.setTexG(rgb.get(1));
+                rpgController.setTexB(rgb.get(2));
+
+                generateImage(rpgController.getTexR(),rpgController.getTexG(),rpgController.getTexB(),"Generated Map W/Props");
+            }
+        });
+        buttonPanel.add(addPropsButton);
+
+        //Creating and adding seventh button to the button panel
         JButton saveMapButton = new JButton("Save Map");
         saveMapButton.addActionListener(new ActionListener() {
             @Override

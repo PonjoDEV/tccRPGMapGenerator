@@ -1,5 +1,6 @@
 package ponjoDEV.RPG.ImageProcessing;
 
+import ponjoDEV.RPG.Model.Prop;
 import ponjoDEV.RPG.Model.Zone;
 import ponjoDEV.RPG.View.RpgMapGeneratorView;
 
@@ -14,7 +15,6 @@ import java.util.stream.Collectors;
 
 public class RpgMapGeneratorController {
     private RpgMapGeneratorView view;
-    public RpgMapGeneratorController(RpgMapGeneratorView view){ this.view = view; }
 
     private int[][] matR, matG, matB, matRCopy, matGCopy, matBCopy, drawn, spreaded, texR, texG, texB;
     private String path = "C:\\Program Files\\RPGMapGenerator";
@@ -25,6 +25,9 @@ public class RpgMapGeneratorController {
     double surroundingWeight, mutationChance, propDensity;
 
     int zoneSpread;
+
+    public RpgMapGeneratorController(RpgMapGeneratorView rpgMapGeneratorView) {
+    }
 
     public int getZoneSpread() {
         return zoneSpread;
@@ -194,7 +197,6 @@ public class RpgMapGeneratorController {
             }
         }
 
-        //TODO SOMETIMES IT IS RETURNING A NUMBER DIFFERENT FROM THE USED ZONES LOOK INTO IT LATER
         registerDrawnZones(red, green, blue, zones);
 
         return zones;
@@ -281,13 +283,27 @@ public class RpgMapGeneratorController {
                     String type = zone.getType();
 
                     switch (type) {
-                        case "Mountain" -> spreadMountain(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
-                        case "Grassland" -> spreadForest(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
-                        case "Desert" -> spreadDesert(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
-                        case "Water" -> spreadWater(i, j, red, green, blue, zone, spreadLimit,(double) startingSpread*0.09*0.7, mutationChance);
-                        case "Roads" -> spreadRoads(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
-                        case "Construction" -> spreadConstruction(red, green, blue, zone, spreadLimit, mutationChance);
-                        default -> System.out.println("Invalid Zone Type");
+                        case "Mountain":
+                            spreadMountain(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                            break;
+                        case "Grassland":
+                            spreadForest(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                            break;
+                        case "Desert":
+                            spreadDesert(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                            break;
+                        case "Water":
+                            spreadWater(i, j, red, green, blue, zone, spreadLimit,(double) startingSpread*0.09*0.7, mutationChance);
+                            break;
+                        case "Roads":
+                            spreadRoads(i, j, red, green, blue, zone, spreadLimit, (double) startingSpread, mutationChance);
+                            break;
+                        case "Construction":
+                            spreadConstruction(red, green, blue, zone, spreadLimit, mutationChance);
+                            break;
+                        default:
+                            System.out.println("Invalid Zone Type");
+                            break;
                     }
                 }
             }
@@ -495,11 +511,10 @@ public class RpgMapGeneratorController {
 
 
 
-    public Vector<int[][]> createMap(ArrayList<Zone>zones, String texturePack, double mutationChance, double propDensity) {
+    public Vector<int[][]> texturizeMap(ArrayList<Zone>zones, String texturePack, double mutationChance, double propDensity) {
         //Linking each texture to a zone so it can get the files by zoneType and then copy the texture into the zone
         int count =0;
 
-        //TODO UNDERSTAND WHY I NEED THIS HERE TO WORK
         int[][] texR = new int[matR.length][matR[0].length];
         int [][] texG = new int[matR.length][matR[0].length];
         int [][] texB = new int[matR.length][matR[0].length];
@@ -517,20 +532,6 @@ public class RpgMapGeneratorController {
             textureFill(zone, subPath, mutationChance, file, texR, texG, texB);
 
         }
-
-        //PROPS
-
-        for (Zone zone: zones){
-
-
-            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+zone.getType();
-            int file = fileChooser(subPath, mutationChance);
-            propFill(zone, subPath, file, texR, texG, texB, propDensity);
-
-            System.out.println(subPath);
-        }
-        //*/
-
 
         Vector<int[][]> rgb = new Vector<>();
         rgb.add(texR);
@@ -655,9 +656,117 @@ public class RpgMapGeneratorController {
         }
     }
 
-    private void propFill(Zone zone, String subPath, int fileNumber, int[][] texR, int[][] texG, int[][] texB, double propDensity) {
-        //TODO RANDOMLY COPY PROPS FROM THE MAP INTO THE ZONES, THE POSITION AND WHICH FILE TO USE FROM THE FOLDER ON EACH ZONE WILL BE CHOSEN BASED
-        // FOR NOW I DONT HAVE THOUGHT OF A WAY TO PROPERLY POPULATE THE AREA
+    public Vector<int[][]> addProps(ArrayList<Zone>zones, int[][] texR, int[][] texG, int[][] texB, String texturePack, double mutationChance, double propDensity) {
+        //Linking each texture to a zone so it can get the files by zoneType and then copy the texture into the zone
+        int count =0;
+
+        //TODO UNDERSTAND WHY I NEED THIS HERE TO WORK
+        int[][] propR = new int[matR.length][matR[0].length];
+        int [][] propG = new int[matR.length][matR[0].length];
+        int [][] propB = new int[matR.length][matR[0].length];
+
+        for (int i = 0; i < propR.length ; i++) {
+            for (int j = 0; j < propR[0].length ; j++) {
+                propR[i][j] = texR[i][j];
+                propG[i][j] = texG[i][j];
+                propB[i][j] = texB[i][j];
+            }
+        }
+
+        //PROPS
+
+        for (Zone zone: zones){
+
+            PropController propController = new PropController();
+
+            String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+zone.getType();
+            //TODO need to load ALL props from the folder
+            //int file = fileChooser(subPath, mutationChance);
+            propFill(zone, subPath, propR, propG, propB, propDensity, propController);
+
+            System.out.println(subPath);
+        }
+        //*/
+
+
+        Vector<int[][]> rgb = new Vector<>();
+        rgb.add(propR);
+        rgb.add(propG);
+        rgb.add(propB);
+
+
+        return rgb;
+    }
+
+    private void propFill(Zone zone, String subPath, int[][] texR, int[][] texG, int[][] texB, double propDensity, PropController propController) {
+        try {// Convert the path to a Path object
+            Path directory = Paths.get(subPath);
+
+            // Check if the directory exists
+            if (!Files.exists(directory) || !Files.isDirectory(directory)) {
+                System.out.println("Directory not found: " + subPath);
+                return;
+            }
+
+            // List all files in the directory
+            List<Path> files = Files.list(directory)
+                    .filter(Files::isRegularFile)
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            // Check if we have enough files and the fileNumber is valid
+            if (files.isEmpty()) {
+                System.out.println("No files found in directory: " + subPath);
+                return;
+            }
+
+            List<Prop> props = new ArrayList<>();
+            // Get the files from the folders and load as BufferedImage on a list
+            for (Path selectedFile : files) {
+                System.out.println("Selected texture file: " + selectedFile.getFileName().toString());
+
+                Prop prop = new Prop(selectedFile);
+                prop.setResizedImage(propController.resizeImg(prop));
+                props.add(prop);
+            }
+
+            for (int i = 0; i < propDensity; i++) {
+                int selectedProp = (int) (Math.random()*props.size());
+                int x, y;
+                //TODO RANDOMLY SELECT A POINT INSIDE THE ZONE AND LET THAT BE THE X AND Y
+                x=0;
+                y=0;
+
+                addPropToLocation(props.get(selectedProp), x, y, texR, texG, texB);
+                //propController.
+            }
+
+
+            //TODO LOAD IMAGES FROM PATH
+            // REDUCE IMAGE SIZES ACCORDING TO THEIR NAMING EX, rock_64x64 will get the image and reduce it to 64x64 pixels while removing its background
+            // COPY THE
+        }
+        catch (IOException e){
+            System.out.println("you stupdi ahh got error: "+e.getMessage());
+        }
+    }
+
+    private void addPropToLocation(Prop prop, int x, int y, int[][] texR, int[][] texG, int[][] texB) {
+        Vector<int[][]> rgbMat = getMatrixRGB(prop.getResizedImage());
+
+        int[][] rOrig = rgbMat.elementAt(0);
+        int[][] gOrig = rgbMat.elementAt(1);
+        int[][] bOrig = rgbMat.elementAt(2);
+
+        for (int i = y; i < y+prop.getHeight(); i++) {
+            for (int j = x; j < x+prop.getWidth(); j++) {
+                if (prop.getValidPixels()[i][j]==1){
+                    texR[i][j] = rOrig[i][j];
+                    texG[i][j] = gOrig[i][j];
+                    texB[i][j] = bOrig[i][j];
+                }
+            }
+        }
     }
 
     private void registerColors (int begY, int endY, int begX, int endX, int [][] red, int [][] blue, int [][] green, HashMap<String,Integer> pixelColors ) {

@@ -1,0 +1,116 @@
+
+package ponjoDEV.RPG.Model;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Path;
+
+/**
+ * Represents a prop with parsed filename information and size data.
+ * Filename format: name_sizexsize.format (e.g., rock_64x64.PNG)
+ */
+public class Prop {
+    private String name;
+    private int width;
+    private int height;
+    private String format;
+    private BufferedImage originalImage;
+    private BufferedImage resizedImage;
+    private int[][] validPixels;
+
+    public Prop(Path file) throws IOException {
+        BufferedImage img = ImageIO.read(file.toFile());
+        this.setOriginalImage(img);
+
+        this.setName(file.getFileName().toString());
+        parseFilename(this.getName());
+
+        int[][] validation = new int[height][width];
+
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
+                validation[i][j] =1;
+            }
+        }
+
+        this.validPixels = validation;
+
+    }
+
+    public int[][] getValidPixels() { return validPixels; }
+    public void setValidPixels(int[][] validPixels) { this.validPixels = validPixels; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public int getWidth() { return width; }
+    public void setWidth(int width) { this.width = width; }
+
+    public int getHeight() { return height; }
+    public void setHeight(int height) { this.height = height; }
+
+    public String getFormat() { return format; }
+    public void setFormat(String format) { this.format = format; }
+
+    public BufferedImage getOriginalImage() { return originalImage; }
+    public void setOriginalImage(BufferedImage originalImage) { this.originalImage = originalImage; }
+
+    public BufferedImage getResizedImage() { return resizedImage; }
+    public void setResizedImage(BufferedImage resizedImage) { this.resizedImage = resizedImage; }
+
+    /**
+     * Parses the filename according to the format: name_sizexsize.format
+     * Example: rock_64x64.PNG
+     */
+    private void parseFilename(String filename) {
+        try {
+            // Remove file extension
+            String nameWithoutExtension = filename;
+            int lastDotIndex = filename.lastIndexOf('.');
+            if (lastDotIndex > 0) {
+                this.format = filename.substring(lastDotIndex + 1);
+                nameWithoutExtension = filename.substring(0, lastDotIndex);
+            }
+
+            // Split by underscore
+            String[] parts = nameWithoutExtension.split("_");
+
+            if (parts.length >= 3) {
+                this.name = parts[0];
+
+                // Parse size (e.g., "64x64")
+                String sizeStr = parts[1];
+                String[] sizeParts = sizeStr.split("x");
+                if (sizeParts.length == 2) {
+                    this.width = Integer.parseInt(sizeParts[0]);
+                    this.height = Integer.parseInt(sizeParts[1]);
+                } else {
+                    // Default size if parsing fails
+                    this.width = 32;
+                    this.height = 32;
+                }
+            } else {
+                // Default values if parsing fails
+                this.name = "unknown";
+                this.width = 32;
+                this.height = 32;
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing prop filename: " + filename + " - " + e.getMessage());
+            // Set default values
+            this.name = "unknown";
+            this.width = 32;
+            this.height = 32;
+        }
+    }
+
+
+    @Override
+    public String toString() {
+        return String.format("Prop{name='%s', size=%dx%d, format='%s'}",
+                name, width, height, format);
+    }
+
+
+}
