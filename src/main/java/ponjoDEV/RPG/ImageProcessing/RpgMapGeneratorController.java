@@ -677,11 +677,9 @@ public class RpgMapGeneratorController {
 
         for (Zone zone: zones){
 
-            PropController propController = new PropController();
+            PropController propController = new PropController(this);
 
             String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+zone.getType();
-            //TODO need to load ALL props from the folder
-            //int file = fileChooser(subPath, mutationChance);
             propFill(zone, subPath, propR, propG, propB, propDensity, propController);
 
             System.out.println(subPath);
@@ -734,8 +732,8 @@ public class RpgMapGeneratorController {
                 int selectedProp = (int) (Math.random()*props.size());
                 int x, y;
                 //TODO RANDOMLY SELECT A POINT INSIDE THE ZONE AND LET THAT BE THE X AND Y
-                x=0;
-                y=0;
+                x = zone.getMinX() + (int)(Math.random() * (zone.getMaxX() - zone.getMinX() + 1));
+                y = zone.getMinY() + (int)(Math.random() * (zone.getMaxY() - zone.getMinY() + 1));
 
                 addPropToLocation(props.get(selectedProp), x, y, texR, texG, texB);
                 //propController.
@@ -758,14 +756,29 @@ public class RpgMapGeneratorController {
         int[][] gOrig = rgbMat.elementAt(1);
         int[][] bOrig = rgbMat.elementAt(2);
 
-        for (int i = y; i < y+prop.getHeight(); i++) {
-            for (int j = x; j < x+prop.getWidth(); j++) {
-                if (prop.getValidPixels()[i][j]==1){
-                    texR[i][j] = rOrig[i][j];
-                    texG[i][j] = gOrig[i][j];
-                    texB[i][j] = bOrig[i][j];
+        // Calculate bounds to prevent going outside texture boundaries
+        int maxY = Math.min(y + prop.getHeight(), texR.length);
+        int maxX = Math.min(x + prop.getWidth(), texR[0].length);
+
+        int height = 0; // Local prop coordinate
+
+        for (int i = y; i < maxY; i++) {
+            int width = 0; // Reset width for each row - Local prop coordinate
+
+            for (int j = x; j < maxX; j++) {
+                // Check bounds for prop arrays before accessing
+                if (height < prop.getValidPixels().length && width < prop.getValidPixels()[0].length) {
+                    if (prop.getValidPixels()[height][width] == 1) {
+                        // Use local coordinates (height, width) for prop arrays
+                        // Use global coordinates (i, j) for texture arrays
+                        texR[i][j] = rOrig[height][width];
+                        texG[i][j] = gOrig[height][width];
+                        texB[i][j] = bOrig[height][width];
+                    }
                 }
+                width++; // Increment local width coordinate
             }
+            height++; // Increment local height coordinate
         }
     }
 

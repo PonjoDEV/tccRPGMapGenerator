@@ -1,4 +1,3 @@
-
 package ponjoDEV.RPG.Model;
 
 import javax.imageio.ImageIO;
@@ -20,7 +19,11 @@ public class Prop {
     private int[][] validPixels;
 
     public Prop(Path file) throws IOException {
+        //TODO WTF IS THIS MAN
         BufferedImage img = ImageIO.read(file.toFile());
+        if (img == null) {
+            throw new IOException("Failed to read image from file: " + file.toString() + ". The file may not be a valid image format.");
+        }
         this.setOriginalImage(img);
 
         this.setName(file.getFileName().toString());

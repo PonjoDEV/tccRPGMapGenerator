@@ -10,9 +10,22 @@ import java.util.Vector;
 public class PropController {
     private RpgMapGeneratorController rpgController;
 
+    // Constructor to initialize rpgController
+    public PropController(RpgMapGeneratorController rpgController) {
+        this.rpgController = rpgController;
+    }
+
     public BufferedImage resizeImg(Prop prop) {
-        //TODO Exception in thread "AWT-EventQueue-0" java.lang.NullPointerException: Cannot invoke "java.awt.image.BufferedImage.getHeight()" because the return value of "ponjoDEV.RPG.Model.Prop.getOriginalImage()" is null
-        //	at ponjoDEV.RPG.ImageProcessing.PropController.resizeImg(PropController.java:66)
+        // Null check for originalImage
+        if (prop.getOriginalImage() == null) {
+            throw new IllegalArgumentException("Prop originalImage is null. Cannot resize image for prop: " + prop.getName());
+        }
+
+        // Null check for rpgController
+        if (rpgController == null) {
+            throw new IllegalStateException("RpgMapGeneratorController is not initialized in PropController");
+        }
+
         int heightRatio = (int) prop.getOriginalImage().getHeight() / prop.getHeight();
         int widthRatio = (int) prop.getOriginalImage().getWidth() / prop.getWidth();
 
@@ -53,7 +66,6 @@ public class PropController {
         // TODO: SAVE THE NEW RESIZED IMAGE AND VALIDATE PIXELS
         return resizedImage;
     }
-
 
     private void validateFlood(int[][] rRes, int[][] gRes, int[][] bRes, int[][] valid) {
         int height = rRes.length;
