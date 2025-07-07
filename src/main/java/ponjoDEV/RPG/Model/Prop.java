@@ -62,10 +62,7 @@ public class Prop {
     public BufferedImage getResizedImage() { return resizedImage; }
     public void setResizedImage(BufferedImage resizedImage) { this.resizedImage = resizedImage; }
 
-    /**
-     * Parses the filename according to the format: name_sizexsize.format
-     * Example: rock_64x64.PNG
-     */
+
     private void parseFilename(String filename) {
         try {
             // Remove file extension
@@ -79,17 +76,42 @@ public class Prop {
             // Split by underscore
             String[] parts = nameWithoutExtension.split("_");
 
-            if (parts.length >= 3) {
-                this.name = parts[0];
+            if (parts.length >= 2) {
+                // Look for the size part (contains 'x')
+                String sizeStr = null;
+                int sizeIndex = -1;
 
-                // Parse size (e.g., "64x64")
-                String sizeStr = parts[1];
-                String[] sizeParts = sizeStr.split("x");
-                if (sizeParts.length == 2) {
-                    this.width = Integer.parseInt(sizeParts[0]);
-                    this.height = Integer.parseInt(sizeParts[1]);
+                // Check from the end backwards to find the size part
+                for (int i = parts.length - 1; i >= 1; i--) {
+                    if (parts[i].contains("x")) {
+                        sizeStr = parts[i];
+                        sizeIndex = i;
+                        break;
+                    }
+                }
+
+                if (sizeStr != null) {
+                    // Build name from parts before the size
+                    StringBuilder nameBuilder = new StringBuilder();
+                    for (int i = 0; i < sizeIndex; i++) {
+                        if (i > 0) nameBuilder.append("_");
+                        nameBuilder.append(parts[i]);
+                    }
+                    this.name = nameBuilder.toString();
+
+                    // Parse size (e.g., "128x128")
+                    String[] sizeParts = sizeStr.split("x");
+                    if (sizeParts.length == 2) {
+                        this.width = Integer.parseInt(sizeParts[0]);
+                        this.height = Integer.parseInt(sizeParts[1]);
+                    } else {
+                        // Default size if parsing fails
+                        this.width = 32;
+                        this.height = 32;
+                    }
                 } else {
-                    // Default size if parsing fails
+                    // No size found, use defaults
+                    this.name = parts[0];
                     this.width = 32;
                     this.height = 32;
                 }

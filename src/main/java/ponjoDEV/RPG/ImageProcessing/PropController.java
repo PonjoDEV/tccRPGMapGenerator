@@ -26,8 +26,8 @@ public class PropController {
             throw new IllegalStateException("RpgMapGeneratorController is not initialized in PropController");
         }
 
-        int heightRatio = (int) prop.getOriginalImage().getHeight() / prop.getHeight();
-        int widthRatio = (int) prop.getOriginalImage().getWidth() / prop.getWidth();
+        double heightRatio = (double) prop.getOriginalImage().getHeight() / prop.getHeight();
+        double widthRatio = (double) prop.getOriginalImage().getWidth() / prop.getWidth();
 
         Vector<int[][]> rgbMat = rpgController.getMatrixRGB(prop.getOriginalImage());
 
@@ -41,9 +41,16 @@ public class PropController {
 
         for (int i = 0; i < prop.getHeight(); i++) {
             for (int j = 0; j < prop.getWidth(); j++) {
-                rRes[i][j] = rOrig[i * heightRatio][j * widthRatio];
-                gRes[i][j] = gOrig[i * heightRatio][j * widthRatio];
-                bRes[i][j] = bOrig[i * heightRatio][j * widthRatio];
+                int srcY = (int) Math.round(i * heightRatio);
+                int srcX = (int) Math.round(j * widthRatio);
+
+                // Ensure we don't go out of bounds
+                srcY = Math.min(srcY, prop.getOriginalImage().getHeight() - 1);
+                srcX = Math.min(srcX, prop.getOriginalImage().getWidth() - 1);
+
+                rRes[i][j] = rOrig[srcY][srcX];
+                gRes[i][j] = gOrig[srcY][srcX];
+                bRes[i][j] = bOrig[srcY][srcX];
             }
         }
 
