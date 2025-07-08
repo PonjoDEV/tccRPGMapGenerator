@@ -2,12 +2,15 @@ package ponjoDEV.RPG.ImageProcessing;
 
 import ponjoDEV.RPG.Model.Prop;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
 public class PropController {
+    private static final double COLOR_TOLERANCE = 30.0; // Configurable tolerance threshold
     private RpgMapGeneratorController rpgController;
 
     // Constructor to initialize rpgController
@@ -78,9 +81,12 @@ public class PropController {
         int height = rRes.length;
         int width = rRes[0].length;
 
-        int targetR = rRes[0][0];
-        int targetG = gRes[0][0];
-        int targetB = bRes[0][0];
+        // Get reference color from first pixel (0,0)
+        Color referenceColor = new Color(rRes[0][0], gRes[0][0], bRes[0][0]);
+
+        // Initialize comparison pool with reference color
+        List<Color> comparisonPool = new ArrayList<>();
+        comparisonPool.add(referenceColor);
 
         boolean[][] visited = new boolean[height][width];
         Stack<int[]> stack = new Stack<>();
@@ -93,17 +99,46 @@ public class PropController {
 
             if (y < 0 || y >= height || x < 0 || x >= width || visited[y][x]) continue;
 
-            if (rRes[y][x] == targetR && gRes[y][x] == targetG && bRes[y][x] == targetB) {
+            Color currentColor = new Color(rRes[y][x], gRes[y][x], bRes[y][x]);
+
+            // Check if current color matches any color in comparison pool
+            boolean isMatch = false;
+            for (Color poolColor : comparisonPool) {
+                if (currentColor.equals(poolColor)) {
+                    isMatch = true;
+                    break;
+                }
+            }
+
+            // If no exact match, check if it's close to reference color
+            if (!isMatch) {
+                double distance = calculateColorDistance(currentColor, referenceColor);
+                if (distance <= COLOR_TOLERANCE) {
+                    // Add this new similar color to comparison pool
+                    comparisonPool.add(currentColor);
+                    isMatch = true;
+                }
+            }
+
+            if (isMatch) {
                 visited[y][x] = true;
+                valid[y][x] = 0;  // Mark as invalid
 
-                valid[y][x] = 0;  // marca como inválido
-
-                // Vizinhos
+                // Add neighbors to stack
                 stack.push(new int[]{y - 1, x});
                 stack.push(new int[]{y + 1, x});
                 stack.push(new int[]{y, x - 1});
                 stack.push(new int[]{y, x + 1});
             }
         }
+    }
+
+    // Helper method to calculate Euclidean distance between two colors
+    private double calculateColorDistance(Color color1, Color color2) {
+        int deltaR = color1.getRed() - color2.getRed();
+        int deltaG = color1.getGreen() - color2.getGreen();
+        int deltaB = color1.getBlue() - color2.getBlue();
+
+        return Math.sqrt(deltaR * deltaR + deltaG * deltaG + deltaB * deltaB);
     }
 }
