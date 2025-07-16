@@ -207,6 +207,8 @@ public class RpgMapGeneratorController {
         int tag = 1;
         int [] rgb = new int [3];
 
+        int[][] temp = new int[red.length][red[0].length];
+
         for (int i = 0; i < red.length; i++) {
             for (int j = 0; j < red[0].length; j++) {
 
@@ -227,6 +229,7 @@ public class RpgMapGeneratorController {
                     zones.add(zone);
 
                     getZoneDimensions(i, j, red, green, blue, rgb, tag, zone);
+                    zone.setPropHeightMap(temp);
                     tag++;
                 }
             }
@@ -350,7 +353,6 @@ public class RpgMapGeneratorController {
         spreaded[i][j] = zone.getTag();
 
         if (rand > spread) {
-            //TODO tweak with this spread condition for a bit
             //Water mutation should start at least 80, so if mutation is lower than 0.8, it must be set to it
             if ((Math.random() < 0.8+ (mutationChance*0.2)-0.61 ) && spreadLimit == 1) spreadLimit++;
 
@@ -530,6 +532,8 @@ public class RpgMapGeneratorController {
             int file = fileChooser(subPath, mutationChance);
 
             textureFill(zone, subPath, mutationChance, file, texR, texG, texB);
+            zone.setPopulated(false);
+            resetMatrix(zone.getPropHeightMap());
 
         }
 
@@ -680,7 +684,7 @@ public class RpgMapGeneratorController {
             PropController propController = new PropController(this);
 
             String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+zone.getType();
-            propFill(zone, subPath, propR, propG, propB, propDensity, propController);
+            propFill(zone, subPath, propR, propG, propB, propDensity, propController, mutationChance);
 
             System.out.println(subPath);
         }
@@ -696,7 +700,7 @@ public class RpgMapGeneratorController {
         return rgb;
     }
 
-    private void propFill(Zone zone, String subPath, int[][] texR, int[][] texG, int[][] texB, double propDensity, PropController propController) {
+    private void propFill(Zone zone, String subPath, int[][] texR, int[][] texG, int[][] texB, double propDensity, PropController propController, double mutationChance) {
         try {// Convert the path to a Path object
             Path directory = Paths.get(subPath);
 
@@ -721,35 +725,51 @@ public class RpgMapGeneratorController {
             List<Prop> props = new ArrayList<>();
             // Get the files from the folders and load as BufferedImage on a list
             for (Path selectedFile : files) {
-                System.out.println("Selected texture file: " + selectedFile.getFileName().toString());
-
                 Prop prop = new Prop(selectedFile);
                 prop.setResizedImage(propController.resizeImg(prop));
                 props.add(prop);
             }
 
             for (int i = 0; i < propDensity; i++) {
-                int selectedProp = (int) (Math.random()*props.size());
-                int x, y;
-                //TODO RANDOMLY SELECT A POINT INSIDE THE ZONE AND LET THAT BE THE X AND Y
-                x = zone.getMinX() + (int)(Math.random() * (zone.getMaxX() - zone.getMinX() + 1));
-                y = zone.getMinY() + (int)(Math.random() * (zone.getMaxY() - zone.getMinY() + 1));
+                int selectedProp = (int) (Math.random() * props.size());
+                int[] xy;
 
-                addPropToLocation(props.get(selectedProp), x, y, texR, texG, texB);
-                //propController.
+                do {
+                    xy = pickPropLocation(zone);
+                    //TODO MAYBE USE SURROUNDING WEIGHT HERE INSTEAD OF MUTATION CHANCE
+                }while (Math.random() > mutationChance && zone.getPropHeightMap()[xy[0]][xy[1]] == 0 && zone.isPopulated());
+
+                addPropToLocation(props.get(selectedProp), xy[1], xy[0], texR, texG, texB, zone);
+
             }
 
-
-            //TODO LOAD IMAGES FROM PATH
-            // REDUCE IMAGE SIZES ACCORDING TO THEIR NAMING EX, rock_64x64 will get the image and reduce it to 64x64 pixels while removing its background
-            // COPY THE
         }
         catch (IOException e){
             System.out.println("you stupdi ahh got error: "+e.getMessage());
         }
     }
 
-    private void addPropToLocation(Prop prop, int x, int y, int[][] texR, int[][] texG, int[][] texB) {
+    private int[] pickPropLocation(Zone zone) {
+        int [] xy = new int[2];
+
+        //Making sure the prop will hae the first pixel added to the zone correctly
+        // TODO GET X AND Y AS THE CENTER OF THE PROP INSTEAD OF JUST THE FIRST PIXEL to be applied, withou getting out
+        //  of bounds when effectively copying the prop image
+
+        //TODO ALSO THE FIRST PROPS BEING POSITIONED ARE ALMOST ALL PICKING THE SAME COORDINATES, CHECK ON THAT LATER WHY
+        do {
+            xy[0] = zone.getMinY() + (int) (Math.random() * (zone.getMaxY() - zone.getMinY() + 1));
+            xy[1] = zone.getMinX() + (int) (Math.random() * (zone.getMaxX() - zone.getMinX() + 1));
+            //y-= (int) props.get(selectedProp).getHeight()/2;
+            //x-= (int) props.get(selectedProp).getWidth()/2;
+
+        }//while (x<0 || y<0 || y>= texR.length|| x>=texR[0].length ||drawn[y][x]!=zone.getTag());
+        while (drawn[xy[0]][xy[1]]!=zone.getTag());
+
+        return xy;
+    }
+
+    private void addPropToLocation(Prop prop, int x, int y, int[][] texR, int[][] texG, int[][] texB, Zone zone) {
         Vector<int[][]> rgbMat = getMatrixRGB(prop.getResizedImage());
 
         int[][] rOrig = rgbMat.elementAt(0);
@@ -771,15 +791,38 @@ public class RpgMapGeneratorController {
                     if (prop.getValidPixels()[height][width] == 1) {
                         // Use local coordinates (height, width) for prop arrays
                         // Use global coordinates (i, j) for texture arrays
-                        texR[i][j] = rOrig[height][width];
-                        texG[i][j] = gOrig[height][width];
-                        texB[i][j] = bOrig[height][width];
+                        if (zone.getPropHeightMap()[i][j] < prop.getHeight()) {
+                            texR[i][j] = rOrig[height][width];
+                            texG[i][j] = gOrig[height][width];
+                            texB[i][j] = bOrig[height][width];
+                        }
+                        zone.getPropHeightMap()[i][j] = prop.getHeight();
                     }
                 }
                 width++; // Increment local width coordinate
             }
             height++; // Increment local height coordinate
         }
+
+        //TODO IS THIS CORRECT ? CHECK LATER
+        zone.setPopulated(true);
+
+        //TODO AFTER APPLYING THE COLORS OF THE PROP AND ITS HEIGHT (IF BIGGER THAN ALREADY EXISTS) NEEDS TO APPLY A "NEGATIVE WAKE" FROM THE PROP AREA THAT
+        // SLOWLY TURNS TO ZERO, EXAMPLE, IF THE PROP IS 1 PIXEL AND ITS HEIGHT IS 5, ALL PIXELS AROUNRD IT WILL BE -4, AND AROUND THOSE WILL BE -3 ETC
+        // UNTIL IT REACHES 0, THAT WAY 2 PROPS WITH DIFFERENT HEIGHT MAY CAUSE THE IMPRESSION OF DEPTH ON THE IMAGE
+
+
+        //TODO USE THE zone.getPropHeightMap() attribute to "paint" a height map in and around ex: 1px image, that px will carry the
+        // prop.getPropHeight() attribute, and around it will have its (value-1)*-1 and increasing till gets 0
+        // ex: prop height =5, then this pixel carries 5. and the first row around it carry -4, then -3, then -2, -1,
+
+        propagateHeightWake(y, x, zone.getPropHeightMap());
+
+    }
+
+    private void propagateHeightWake(int y, int x, int[][] propHeightMap) {
+        //TODO MAKE THE WAKE HEIGHT PROPAGATION IN HERE
+
     }
 
     private void registerColors (int begY, int endY, int begX, int endX, int [][] red, int [][] blue, int [][] green, HashMap<String,Integer> pixelColors ) {

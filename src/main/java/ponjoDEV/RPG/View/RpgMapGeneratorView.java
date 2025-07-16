@@ -304,12 +304,12 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 5: Prop density
         JLabel propDensityLabel = new JLabel("Prop Density");
-        JSlider propDensitySlider = new JSlider(10, 100);
-        propDensitySlider.setValue(30);
+        JSlider propDensitySlider = new JSlider(1, 10);
+        propDensitySlider.setValue(3);
         propDensitySlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                rpgController.setPropDensity(propDensitySlider.getValue()/100.0);
+                rpgController.setPropDensity(propDensitySlider.getValue());
                 System.out.println("Prop Density: " + rpgController.getPropDensity());
             }
         });
@@ -320,7 +320,7 @@ public class RpgMapGeneratorView extends JFrame {
         //setTest(testSlider.getValue());
         rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/100.0);
         rpgController.setMutationChance(mutationChanceSlider.getValue()/100.0);
-        rpgController.setPropDensity(propDensitySlider.getValue()/100.0);
+        rpgController.setPropDensity(propDensitySlider.getValue());
         setLineThickness(thicknessSlider.getValue());
         rpgController.setZoneSpread((int) zoneSpreadSlider.getValue());
 

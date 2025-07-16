@@ -16,10 +16,10 @@ public class Prop {
     private String format;
     private BufferedImage originalImage;
     private BufferedImage resizedImage;
+    private int propHeight;
     private int[][] validPixels;
 
     public Prop(Path file) throws IOException {
-        //TODO WTF IS THIS MAN
         BufferedImage img = ImageIO.read(file.toFile());
         if (img == null) {
             throw new IOException("Failed to read image from file: " + file.toString() + ". The file may not be a valid image format.");
@@ -40,6 +40,9 @@ public class Prop {
         this.validPixels = validation;
 
     }
+
+    public int getPropHeight() { return propHeight; }
+    public void setPropHeight(int propHeight) { this.propHeight = propHeight; }
 
     public int[][] getValidPixels() { return validPixels; }
     public void setValidPixels(int[][] validPixels) { this.validPixels = validPixels; }
@@ -76,13 +79,16 @@ public class Prop {
             // Split by underscore
             String[] parts = nameWithoutExtension.split("_");
 
-            if (parts.length >= 2) {
+            if (parts.length >= 3) {
+                // Get the prop Height
+                this.setPropHeight(Integer.parseInt(parts[1]));
+
                 // Look for the size part (contains 'x')
                 String sizeStr = null;
                 int sizeIndex = -1;
 
                 // Check from the end backwards to find the size part
-                for (int i = parts.length - 1; i >= 1; i--) {
+                for (int i = parts.length - 1; i >= 2; i--) {
                     if (parts[i].contains("x")) {
                         sizeStr = parts[i];
                         sizeIndex = i;
@@ -93,10 +99,9 @@ public class Prop {
                 if (sizeStr != null) {
                     // Build name from parts before the size
                     StringBuilder nameBuilder = new StringBuilder();
-                    for (int i = 0; i < sizeIndex; i++) {
-                        if (i > 0) nameBuilder.append("_");
-                        nameBuilder.append(parts[i]);
-                    }
+
+                    nameBuilder.append(parts[0]);
+
                     this.name = nameBuilder.toString();
 
                     // Parse size (e.g., "128x128")
@@ -120,6 +125,7 @@ public class Prop {
                 this.name = "unknown";
                 this.width = 32;
                 this.height = 32;
+                this.propHeight = 1;
             }
         } catch (Exception e) {
             System.err.println("Error parsing prop filename: " + filename + " - " + e.getMessage());
@@ -127,6 +133,7 @@ public class Prop {
             this.name = "unknown";
             this.width = 32;
             this.height = 32;
+            this.propHeight = 1;
         }
     }
 
