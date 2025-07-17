@@ -248,7 +248,7 @@ public class RpgMapGeneratorView extends JFrame {
         // Slider 1: Line Thickness
         JLabel thicknessLabel = new JLabel("Line Thickness");
         JSlider thicknessSlider = new JSlider(10, 100);
-        thicknessSlider.setValue(10); // Default thickness
+        thicknessSlider.setValue(30); // Default thickness
         thicknessSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -262,7 +262,7 @@ public class RpgMapGeneratorView extends JFrame {
         // Slider 2: Zone Spread
         JLabel zoneSpreadLabel = new JLabel("Zone Spread");
         JSlider zoneSpreadSlider = new JSlider(0, 10);
-        zoneSpreadSlider.setValue(2); // Default Zone Spread
+        zoneSpreadSlider.setValue(7); // Default Zone Spread
         zoneSpreadSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -275,12 +275,12 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 3: Surrouding Weight
         JLabel surroundWeight = new JLabel("Surrounding weight");
-        JSlider surroundWeightSlider = new JSlider(90, 100);
-        surroundWeightSlider.setValue(95);
+        JSlider surroundWeightSlider = new JSlider(970, 1000);
+        surroundWeightSlider.setValue(985);
         surroundWeightSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/100.0);
+                rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/1000.0);
                 System.out.println("Surrounding weight: " + rpgController.getSurroundingWeight());
             }
         });
@@ -304,8 +304,8 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 5: Prop density
         JLabel propDensityLabel = new JLabel("Prop Density");
-        JSlider propDensitySlider = new JSlider(1, 100);
-        propDensitySlider.setValue(100);
+        JSlider propDensitySlider = new JSlider(1, 10);
+        propDensitySlider.setValue(10);
         propDensitySlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -318,7 +318,7 @@ public class RpgMapGeneratorView extends JFrame {
         sliderPanel.add(propDensitySlider);
 
         //setTest(testSlider.getValue());
-        rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/100.0);
+        rpgController.setSurroundingWeight(surroundWeightSlider.getValue()/1000.0);
         rpgController.setMutationChance(mutationChanceSlider.getValue()/100.0);
         rpgController.setPropDensity(propDensitySlider.getValue());
         setLineThickness(thicknessSlider.getValue());
@@ -329,7 +329,24 @@ public class RpgMapGeneratorView extends JFrame {
 
     private void setupButtons() {
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(7, 1));
+        buttonPanel.setLayout(new GridLayout(8, 1));
+
+        //Creating and adding first button to the button panel
+        JButton testButton = new JButton("Test");
+        testButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (int i = 0; i < zones.get(0).getPropHeightMap().length; i++) {
+                    for (int j = 0; j < zones.get(0).getPropHeightMap()[0].length; j++) {
+                        if (zones.getFirst().getPropHeightMap()[i][j] < 0){
+                            zones.getFirst().getPropHeightMap()[i][j] *= -1;
+                        }
+                    }
+                }
+                generateImage(zones.get(0).getPropHeightMap(),zones.get(0).getPropHeightMap(),zones.get(0).getPropHeightMap(),"height map zone 1");
+            }
+        });
+        buttonPanel.add(testButton);
 
         //Creating and adding first button to the button panel
         JButton createNewCanvas = new JButton("New Canvas");

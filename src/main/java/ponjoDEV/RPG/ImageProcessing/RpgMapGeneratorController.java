@@ -700,7 +700,7 @@ public class RpgMapGeneratorController {
         return rgb;
     }
 
-    private void propFill(Zone zone, String subPath, int[][] texR, int[][] texG, int[][] texB, double propDensity, PropController propController, double surroundingWeight) {
+    private void propFill(Zone zone, String subPath, int[][] propR, int[][] propG, int[][] propB, double propDensity, PropController propController, double surroundingWeight) {
         try {// Convert the path to a Path object
             Path directory = Paths.get(subPath);
 
@@ -738,7 +738,8 @@ public class RpgMapGeneratorController {
                     xy = pickPropLocation(zone);
                 }while (zone.isPopulated() && Math.random() < surroundingWeight && zone.getPropHeightMap()[xy[0]][xy[1]] == 0);
 
-                addPropToLocation(props.get(selectedProp), xy[1], xy[0], texR, texG, texB, zone);
+
+                addPropToLocation(props.get(selectedProp), xy[1], xy[0], propR, propG, propB, zone);
 
             }
 
@@ -801,6 +802,8 @@ public class RpgMapGeneratorController {
             height++; // Increment local height coordinate
         }
 
+        System.out.println(prop.getName()+" has this height: "+prop.getPropHeight());
+
         //TODO IS THIS CORRECT ? CHECK LATER
         zone.setPopulated(true);
 
@@ -818,8 +821,32 @@ public class RpgMapGeneratorController {
     }
 
     private void propagateHeightWake(int y, int x, int[][] propHeightMap) {
-        //TODO MAKE THE WAKE HEIGHT PROPAGATION IN HERE
+        int propHeight = propHeightMap[y][x];
 
+        if (propHeight <= 0) {
+            return;
+        }
+
+        // Process from innermost to outermost layer
+        for (int layer = 1; layer < propHeight; layer++) {
+            int wakeHeight = layer - propHeight; // Creates: -4, -3, -2, -1
+
+            for (int dy = -layer; dy <= layer; dy++) {
+                for (int dx = -layer; dx <= layer; dx++) {
+                    int newY = y + dy;
+                    int newX = x + dx;
+
+                    if (newY >= 0 && newY < propHeightMap.length &&
+                            newX >= 0 && newX < propHeightMap[0].length) {
+
+                        // Only set wake if current value is 0 (empty space)
+                        if (propHeightMap[newY][newX] == 0) {
+                            propHeightMap[newY][newX] = wakeHeight;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void registerColors (int begY, int endY, int begX, int endX, int [][] red, int [][] blue, int [][] green, HashMap<String,Integer> pixelColors ) {
