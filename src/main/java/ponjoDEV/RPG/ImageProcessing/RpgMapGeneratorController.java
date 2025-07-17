@@ -660,7 +660,7 @@ public class RpgMapGeneratorController {
         }
     }
 
-    public Vector<int[][]> addProps(ArrayList<Zone>zones, int[][] texR, int[][] texG, int[][] texB, String texturePack, double mutationChance, double propDensity) {
+    public Vector<int[][]> addProps(ArrayList<Zone>zones, int[][] texR, int[][] texG, int[][] texB, String texturePack, double surroundingWeight, double propDensity) {
         //Linking each texture to a zone so it can get the files by zoneType and then copy the texture into the zone
         int count =0;
 
@@ -684,7 +684,7 @@ public class RpgMapGeneratorController {
             PropController propController = new PropController(this);
 
             String subPath = path+"\\RPGMapTextures\\"+texturePack+"\\Props\\"+zone.getType();
-            propFill(zone, subPath, propR, propG, propB, propDensity, propController, mutationChance);
+            propFill(zone, subPath, propR, propG, propB, propDensity, propController, surroundingWeight);
 
             System.out.println(subPath);
         }
@@ -700,7 +700,7 @@ public class RpgMapGeneratorController {
         return rgb;
     }
 
-    private void propFill(Zone zone, String subPath, int[][] texR, int[][] texG, int[][] texB, double propDensity, PropController propController, double mutationChance) {
+    private void propFill(Zone zone, String subPath, int[][] texR, int[][] texG, int[][] texB, double propDensity, PropController propController, double surroundingWeight) {
         try {// Convert the path to a Path object
             Path directory = Paths.get(subPath);
 
@@ -736,8 +736,7 @@ public class RpgMapGeneratorController {
 
                 do {
                     xy = pickPropLocation(zone);
-                    //TODO MAYBE USE SURROUNDING WEIGHT HERE INSTEAD OF MUTATION CHANCE
-                }while (Math.random() > mutationChance && zone.getPropHeightMap()[xy[0]][xy[1]] == 0 && zone.isPopulated());
+                }while (zone.isPopulated() && Math.random() < surroundingWeight && zone.getPropHeightMap()[xy[0]][xy[1]] == 0);
 
                 addPropToLocation(props.get(selectedProp), xy[1], xy[0], texR, texG, texB, zone);
 
@@ -755,8 +754,6 @@ public class RpgMapGeneratorController {
         //Making sure the prop will hae the first pixel added to the zone correctly
         // TODO GET X AND Y AS THE CENTER OF THE PROP INSTEAD OF JUST THE FIRST PIXEL to be applied, withou getting out
         //  of bounds when effectively copying the prop image
-
-        //TODO ALSO THE FIRST PROPS BEING POSITIONED ARE ALMOST ALL PICKING THE SAME COORDINATES, CHECK ON THAT LATER WHY
         do {
             xy[0] = zone.getMinY() + (int) (Math.random() * (zone.getMaxY() - zone.getMinY() + 1));
             xy[1] = zone.getMinX() + (int) (Math.random() * (zone.getMaxX() - zone.getMinX() + 1));

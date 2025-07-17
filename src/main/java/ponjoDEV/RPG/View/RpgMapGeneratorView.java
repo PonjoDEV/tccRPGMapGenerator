@@ -275,8 +275,8 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 3: Surrouding Weight
         JLabel surroundWeight = new JLabel("Surrounding weight");
-        JSlider surroundWeightSlider = new JSlider(85, 100);
-        surroundWeightSlider.setValue(90);
+        JSlider surroundWeightSlider = new JSlider(90, 100);
+        surroundWeightSlider.setValue(95);
         surroundWeightSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -304,8 +304,8 @@ public class RpgMapGeneratorView extends JFrame {
 
         // Slider 5: Prop density
         JLabel propDensityLabel = new JLabel("Prop Density");
-        JSlider propDensitySlider = new JSlider(1, 10);
-        propDensitySlider.setValue(3);
+        JSlider propDensitySlider = new JSlider(1, 100);
+        propDensitySlider.setValue(100);
         propDensitySlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -461,7 +461,7 @@ public class RpgMapGeneratorView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Vector<int[][]> rgb = new Vector<>();
-                rgb = rpgController.addProps(zones, rpgController.getTexR(),rpgController.getTexG(),rpgController.getTexB(), texturesMenu.getSelectedItem().toString(), rpgController.getMutationChance()/100, rpgController.getPropDensity());
+                rgb = rpgController.addProps(zones, rpgController.getTexR(),rpgController.getTexG(),rpgController.getTexB(), texturesMenu.getSelectedItem().toString(), rpgController.getSurroundingWeight(), rpgController.getPropDensity());
 
                 rpgController.setTexR(rgb.get(0));
                 rpgController.setTexG(rgb.get(1));
