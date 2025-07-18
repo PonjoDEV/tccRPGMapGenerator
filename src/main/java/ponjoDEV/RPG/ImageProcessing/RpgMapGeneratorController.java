@@ -593,68 +593,112 @@ public class RpgMapGeneratorController {
             int textureWidth = img.getWidth();
             int textureHeight = img.getHeight();
 
-            // Calculate safe starting bounds for random texture selection
-            int maxStartX = Math.max(0, textureWidth - zoneWidth);
-            int maxStartY = Math.max(0, textureHeight - zoneHeight);
-
-            // Generate random starting point
-            Random random = new Random();
-            int startX = maxStartX > 0 ? random.nextInt(maxStartX + 1) : 0;
-            int startY = maxStartY > 0 ? random.nextInt(maxStartY + 1) : 0;
 
             // Create temporary arrays to store texture portion (zone-sized)
             int[][] tempR = new int[zoneHeight][zoneWidth];
             int[][] tempG = new int[zoneHeight][zoneWidth];
             int[][] tempB = new int[zoneHeight][zoneWidth];
 
-            // Copy texture portion to temporary arrays
-            for (int y = 0; y < zoneHeight; y++) {
-                for (int x = 0; x < zoneWidth; x++) {
-                    // Calculate texture coordinates with wrapping if needed
-                    int texX = (startX + x) % textureWidth;
-                    int texY = (startY + y) % textureHeight;
+            if (zone.getType().equals("Construction")) {
+                // For construction zones, resize texture to fit the zone
+                for (int y = zone.getMinY(); y <= zone.getMaxY(); y++) {
+                    for (int x = zone.getMinX(); x <= zone.getMaxX(); x++) {
+                        // Check bounds
+                        if (y >= 0 && y < drawn.length && x >= 0 && x < drawn[0].length) {
+                            // Only apply texture where the zone exists
+                            if (drawn[y][x] == zone.getTag() || spreaded[y][x] == zone.getTag()) {
+                                // Calculate relative position within the zone (0 to zoneWidth/Height)
+                                int relativeX = x - zone.getMinX();
+                                int relativeY = y - zone.getMinY();
 
-                    // Get RGB values from texture
-                    int rgb = img.getRGB(texX, texY);
-                    int red = (rgb >> 16) & 0xFF;
-                    int green = (rgb >> 8) & 0xFF;
-                    int blue = rgb & 0xFF;
+                                // Map zone coordinates to texture coordinates (scaling)
+                                int textureX = (relativeX * textureWidth) / zoneWidth;
+                                int textureY = (relativeY * textureHeight) / zoneHeight;
 
-                    // Apply mutation chance for variation
-                    if (random.nextDouble() < mutationChance) {
-                        red = Math.max(0, Math.min(255, red + random.nextInt(21) - 10));
-                        green = Math.max(0, Math.min(255, green + random.nextInt(21) - 10));
-                        blue = Math.max(0, Math.min(255, blue + random.nextInt(21) - 10));
+                                // Ensure we don't go out of texture bounds
+                                textureX = Math.min(textureX, textureWidth - 1);
+                                textureY = Math.min(textureY, textureHeight - 1);
+
+                                // Get RGB values directly from the texture image
+                                int rgb = img.getRGB(textureX, textureY);
+                                int r = (rgb >> 16) & 0xFF;
+                                int g = (rgb >> 8) & 0xFF;
+                                int b = rgb & 0xFF;
+
+                                // Apply mutation if specified
+                                if (Math.random() < mutationChance) {
+                                    r = Math.max(0, Math.min(255, r + (int)(Math.random() * 20 - 10)));
+                                    g = Math.max(0, Math.min(255, g + (int)(Math.random() * 20 - 10)));
+                                    b = Math.max(0, Math.min(255, b + (int)(Math.random() * 20 - 10)));
+                                }
+
+                                texR[y][x] = r;
+                                texG[y][x] = g;
+                                texB[y][x] = b;
+                            }
+                        }
                     }
-
-                    tempR[y][x] = red;
-                    tempG[y][x] = green;
-                    tempB[y][x] = blue;
                 }
-            }
+            }else {
 
-            // Apply texture to zone areas in the main matrices
-            for (int y = zone.getMinY(); y <= zone.getMaxY(); y++) {
-                for (int x = zone.getMinX(); x <= zone.getMaxX(); x++) {
-                    // Check bounds
-                    if (y >= 0 && y < drawn.length && x >= 0 && x < drawn[0].length) {
-                        // Only apply texture where the zone exists
-                        if (drawn[y][x] == zone.getTag() || spreaded[y][x] == zone.getTag()) {
-                            // Calculate relative position within the zone
-                            int relativeY = y - zone.getMinY();
-                            int relativeX = x - zone.getMinX();
 
-                            // Apply texture from temporary arrays
-                            if (relativeY < zoneHeight && relativeX < zoneWidth) {
-                                texR[y][x] = tempR[relativeY][relativeX];
-                                texG[y][x] = tempG[relativeY][relativeX];
-                                texB[y][x] = tempB[relativeY][relativeX];
+                // Calculate safe starting bounds for random texture selection
+                int maxStartX = Math.max(0, textureWidth - zoneWidth);
+                int maxStartY = Math.max(0, textureHeight - zoneHeight);
+
+                // Generate random starting point
+                Random random = new Random();
+                int startX = maxStartX > 0 ? random.nextInt(maxStartX + 1) : 0;
+                int startY = maxStartY > 0 ? random.nextInt(maxStartY + 1) : 0;
+
+                // Copy texture portion to temporary arrays
+                for (int y = 0; y < zoneHeight; y++) {
+                    for (int x = 0; x < zoneWidth; x++) {
+                        // Calculate texture coordinates with wrapping if needed
+                        int texX = (startX + x) % textureWidth;
+                        int texY = (startY + y) % textureHeight;
+
+                        // Get RGB values from texture
+                        int rgb = img.getRGB(texX, texY);
+                        int red = (rgb >> 16) & 0xFF;
+                        int green = (rgb >> 8) & 0xFF;
+                        int blue = rgb & 0xFF;
+
+                        // Apply mutation chance for variation
+                        if (random.nextDouble() < mutationChance) {
+                            red = Math.max(0, Math.min(255, red + random.nextInt(21) - 10));
+                            green = Math.max(0, Math.min(255, green + random.nextInt(21) - 10));
+                            blue = Math.max(0, Math.min(255, blue + random.nextInt(21) - 10));
+                        }
+
+                        tempR[y][x] = red;
+                        tempG[y][x] = green;
+                        tempB[y][x] = blue;
+                    }
+                }
+
+                // Apply texture to zone areas in the main matrices
+                for (int y = zone.getMinY(); y <= zone.getMaxY(); y++) {
+                    for (int x = zone.getMinX(); x <= zone.getMaxX(); x++) {
+                        // Check bounds
+                        if (y >= 0 && y < drawn.length && x >= 0 && x < drawn[0].length) {
+                            // Only apply texture where the zone exists
+                            if (drawn[y][x] == zone.getTag() || spreaded[y][x] == zone.getTag()) {
+                                // Calculate relative position within the zone
+                                int relativeY = y - zone.getMinY();
+                                int relativeX = x - zone.getMinX();
+
+                                // Apply texture from temporary arrays
+                                if (relativeY < zoneHeight && relativeX < zoneWidth) {
+                                    texR[y][x] = tempR[relativeY][relativeX];
+                                    texG[y][x] = tempG[relativeY][relativeX];
+                                    texB[y][x] = tempB[relativeY][relativeX];
+                                }
                             }
                         }
                     }
                 }
             }
-
         } catch (IOException e) {
             System.err.println("Error accessing directory or loading image: " + e.getMessage());
         }

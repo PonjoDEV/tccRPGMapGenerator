@@ -329,24 +329,7 @@ public class RpgMapGeneratorView extends JFrame {
 
     private void setupButtons() {
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(8, 1));
-
-        //Creating and adding first button to the button panel
-        JButton testButton = new JButton("Test");
-        testButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                for (int i = 0; i < zones.get(0).getPropHeightMap().length; i++) {
-                    for (int j = 0; j < zones.get(0).getPropHeightMap()[0].length; j++) {
-                        if (zones.getFirst().getPropHeightMap()[i][j] < 0){
-                            zones.getFirst().getPropHeightMap()[i][j] *= -1;
-                        }
-                    }
-                }
-                generateImage(zones.get(0).getPropHeightMap(),zones.get(0).getPropHeightMap(),zones.get(0).getPropHeightMap(),"height map zone 1");
-            }
-        });
-        buttonPanel.add(testButton);
+        buttonPanel.setLayout(new GridLayout(7, 1));
 
         //Creating and adding first button to the button panel
         JButton createNewCanvas = new JButton("New Canvas");
