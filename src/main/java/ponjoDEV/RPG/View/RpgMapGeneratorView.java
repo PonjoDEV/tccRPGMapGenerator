@@ -18,6 +18,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import static java.lang.Integer.parseInt;
+
 public class RpgMapGeneratorView extends JFrame {
     private final JDesktopPane theDesktop = new JDesktopPane();
     private final JFileChooser fileChooser = new JFileChooser();
@@ -80,7 +82,7 @@ public class RpgMapGeneratorView extends JFrame {
         }
 
         public Dimension getPreferredSize(){
-            return new Dimension(1200, 720);
+            return new Dimension(parseInt(widthField.getText()), parseInt(heightField.getText()));
         }
     }
 
@@ -107,7 +109,7 @@ public class RpgMapGeneratorView extends JFrame {
         add(theDesktop, BorderLayout.CENTER);
 
 
-        setSize(1200, 720);
+        setSize(1920, 1030);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }
@@ -520,8 +522,8 @@ public class RpgMapGeneratorView extends JFrame {
 
 
     private void createNewCanvas() {
-        int width = Integer.parseInt(widthField.getText());
-        int height = Integer.parseInt(heightField.getText());
+        int width = parseInt(widthField.getText());
+        int height = parseInt(heightField.getText());
         canvasImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = canvasImage.createGraphics();
         g2d.setColor(Color.WHITE); // Fill background with white
